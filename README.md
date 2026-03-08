@@ -40,6 +40,9 @@ The CEC's current demand forecasting relies on 33 weather stations, CAISO-only l
 **Amy Steward** — UC Berkeley MIDS (2024–2026) 
 [LinkedIn](https://linkedin.com/in/amyesteward/) · [Medium](https://medium.com/@aestew) · [GitHub](https://github.com/aestew)
 
+## AI Usage
+laude was used as a coding assistant throughout development. All architecture design, data pipeline decisions, and modeling choices were made by Amy Steward.
+
 _Additional data contributions (EV, data center, county demographics, calendar features) by Kristen Lin and Chad Adelman. Developed as part of a UC Berkeley MIDS capstone project._
 
 
