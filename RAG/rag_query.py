@@ -22,6 +22,9 @@ import sys
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
 CHROMA_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
 COLLECTION_NAME = "climatefeat_corpus"
 VOYAGE_MODEL = "voyage-3.5-lite"
