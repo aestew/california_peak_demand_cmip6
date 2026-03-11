@@ -1,0 +1,9 @@
+boto3==1.42.59
+htbuilder==0.9.0
+numpy==2.3.5
+pandas==2.3.3
+plotly==6.5.2
+pyarrow==23.0.1
+streamlit==1.54.0
+requests
+geopandas==1.1.2
