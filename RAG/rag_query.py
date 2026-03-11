@@ -1,61 +1,65 @@
 """
-query_rag.py — Step 3 of the ClimateFEAT RAG pipeline
+rag_query.py — Step 3 of the ClimateFEAT RAG pipeline
 
 Takes a question, retrieves relevant chunks from ChromaDB,
 and generates a grounded answer via Claude.
 
-Prerequisites:
-    pip install voyageai chromadb anthropic
-
-    Set your API keys:
-    export VOYAGE_API_KEY="pa-your-key-here"
-    export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+Works in three environments:
+    1. Local terminal (reads from .env or environment variables)
+    2. Streamlit local (reads from .env or environment variables)
+    3. Streamlit Cloud (reads from st.secrets)
 
 Run from the RAG/ directory:
-    python query_rag.py "How does ClimateFEAT handle humidity?"
-    python query_rag.py  (interactive mode — keeps asking for questions)
+    python rag_query.py "How does ClimateFEAT handle humidity?"
+    python rag_query.py  (interactive mode)
 """
 
 import os
-import os
-from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
+import sys
+
 # ---------------------------------------------------------------------------
-# SECRET HANDLING
+# SECRET HANDLING — try all sources in order
 # ---------------------------------------------------------------------------
 
-# Streamlit Cloud stores secrets differently — pull them into env vars
+# Source 1: .env file (local development)
+try:
+    from dotenv import load_dotenv
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
+    load_dotenv(env_path)
+except ImportError:
+    pass  # python-dotenv not installed, that's fine
+
+# Source 2: Streamlit Cloud secrets
 try:
     import streamlit as st
-    if "ANTHROPIC_API_KEY" in st.secrets:
-        os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
-    if "VOYAGE_API_KEY" in st.secrets:
-        os.environ["VOYAGE_API_KEY"] = st.secrets["VOYAGE_API_KEY"]
+    if hasattr(st, "secrets"):
+        for key in ["ANTHROPIC_API_KEY", "VOYAGE_API_KEY"]:
+            try:
+                val = st.secrets[key]
+                if val:
+                    os.environ[key] = val
+            except (KeyError, FileNotFoundError):
+                pass
 except Exception:
-    pass  # Not running in Streamlit, use .env or environment variables
+    pass
 
 
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
-CHROMA_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
+CHROMA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db")
 COLLECTION_NAME = "climatefeat_corpus"
 VOYAGE_MODEL = "voyage-3.5-lite"
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
-TOP_K = 8                 # number of chunks to retrieve
-MAX_TOKENS = 1500         # max length of Claude's answer
+TOP_K = 8
+MAX_TOKENS = 1500
 
 
 # ---------------------------------------------------------------------------
 # STEP 1: Load ChromaDB collection
 # ---------------------------------------------------------------------------
 def load_collection():
-    """
-    Opens the existing ChromaDB database from disk.
-    Returns the collection object.
-    """
     import chromadb
-
     client = chromadb.PersistentClient(path=CHROMA_DIR)
     collection = client.get_collection(name=COLLECTION_NAME)
     print(f"Loaded ChromaDB collection: {collection.count()} chunks")
@@ -66,24 +70,14 @@ def load_collection():
 # STEP 2: Retrieve relevant chunks for a question
 # ---------------------------------------------------------------------------
 def retrieve(question: str, collection, category_filter: str = None) -> list[dict]:
-    """
-    Embeds the question via Voyage AI, searches ChromaDB,
-    and returns the top-k most relevant chunks.
-
-    Args:
-        question: the user's question
-        collection: ChromaDB collection object
-        category_filter: optional — "cec" or "climatefeat" to restrict search
-
-    Returns:
-        list of dicts with keys: text, source, section, category, distance
-    """
     import voyageai
 
-    vo = voyageai.Client(api_key=os.environ.get("VOYAGE_API_KEY"))
+    api_key = os.environ.get("VOYAGE_API_KEY")
+    if not api_key:
+        raise ValueError("VOYAGE_API_KEY not found in environment or Streamlit secrets")
 
-    # Embed the question
-    # input_type="query" tells Voyage to optimize for search queries
+    vo = voyageai.Client(api_key=api_key)
+
     result = vo.embed(
         texts=[question],
         model=VOYAGE_MODEL,
@@ -91,20 +85,17 @@ def retrieve(question: str, collection, category_filter: str = None) -> list[dic
     )
     query_embedding = result.embeddings[0]
 
-    # Build the ChromaDB query
     query_params = {
         "query_embeddings": [query_embedding],
         "n_results": TOP_K,
         "include": ["documents", "metadatas", "distances"]
     }
 
-    # Optional: filter by category (only search CEC docs or only ClimateFEAT docs)
     if category_filter:
         query_params["where"] = {"category": category_filter}
 
     results = collection.query(**query_params)
 
-    # Package results into a clean list of dicts
     retrieved = []
     for i in range(len(results["ids"][0])):
         retrieved.append({
@@ -122,21 +113,14 @@ def retrieve(question: str, collection, category_filter: str = None) -> list[dic
 # STEP 3: Build the prompt and call Claude
 # ---------------------------------------------------------------------------
 def generate_answer(question: str, retrieved_chunks: list[dict]) -> str:
-    """
-    Builds a prompt with the retrieved chunks as context,
-    sends it to Claude, and returns the answer.
-    """
     import anthropic
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        print("ERROR: ANTHROPIC_API_KEY environment variable not set.")
-        print("Run: export ANTHROPIC_API_KEY=\"sk-ant-your-key-here\"")
-        sys.exit(1)
+        raise ValueError("ANTHROPIC_API_KEY not found in environment or Streamlit secrets")
 
     client = anthropic.Anthropic(api_key=api_key)
 
-    # Build the context block from retrieved chunks
     context_parts = []
     for i, chunk in enumerate(retrieved_chunks):
         context_parts.append(
@@ -145,7 +129,6 @@ def generate_answer(question: str, retrieved_chunks: list[dict]) -> str:
         )
     context_block = "\n\n---\n\n".join(context_parts)
 
-    # System prompt: tells Claude how to behave
     system_prompt = """You are a technical assistant for the ClimateFEAT project, 
 a climate-informed electricity demand forecasting model for California. 
 
@@ -161,14 +144,12 @@ Rules:
 5. Keep answers concise but complete. Use technical language appropriate for 
    energy forecasting professionals."""
 
-    # User message: question + context
     user_message = f"""Question: {question}
 
 Context from the ClimateFEAT documentation corpus:
 
 {context_block}"""
 
-    # Call Claude
     response = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=MAX_TOKENS,
@@ -185,10 +166,6 @@ Context from the ClimateFEAT documentation corpus:
 # STEP 4: Pretty-print the full result
 # ---------------------------------------------------------------------------
 def ask(question: str, collection, category_filter: str = None, show_sources: bool = True):
-    """
-    Full RAG pipeline: retrieve → generate → print.
-    """
-    # Retrieve
     chunks = retrieve(question, collection, category_filter)
 
     if show_sources:
@@ -198,10 +175,8 @@ def ask(question: str, collection, category_filter: str = None, show_sources: bo
             print(f"  [{i+1}] {chunk['source']} → {chunk['section']} (dist: {chunk['distance']:.3f})")
         print(f"{'─' * 60}")
 
-    # Generate
     print(f"\nGenerating answer...\n")
     answer = generate_answer(question, chunks)
-
     print(answer)
     print()
 
@@ -209,27 +184,23 @@ def ask(question: str, collection, category_filter: str = None, show_sources: bo
 
 
 # ---------------------------------------------------------------------------
-# Run it
+# Run it (command line mode)
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    # Check API keys
     if not os.environ.get("VOYAGE_API_KEY"):
-        print("ERROR: VOYAGE_API_KEY not set. Run: export VOYAGE_API_KEY=\"pa-...\"")
+        print("ERROR: VOYAGE_API_KEY not set.")
         sys.exit(1)
     if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("ERROR: ANTHROPIC_API_KEY not set. Run: export ANTHROPIC_API_KEY=\"sk-ant-...\"")
+        print("ERROR: ANTHROPIC_API_KEY not set.")
         sys.exit(1)
 
-    # Load the collection
     collection = load_collection()
 
-    # If a question was passed on the command line, answer it and exit
     if len(sys.argv) > 1:
         question = " ".join(sys.argv[1:])
         ask(question, collection)
         sys.exit(0)
 
-    # Otherwise, interactive mode
     print("\nClimateFEAT RAG — ask questions about the project and CEC context.")
     print("Type 'quit' to exit. Prefix with 'cec:' or 'cf:' to filter by category.\n")
 
@@ -246,7 +217,6 @@ if __name__ == "__main__":
             print("Bye!")
             break
 
-        # Check for category prefix
         category_filter = None
         if question.lower().startswith("cec:"):
             category_filter = "cec"
