@@ -6,7 +6,8 @@ plotly==6.5.2
 pyarrow==23.0.1
 streamlit==1.54.0
 requests
-geopandas==1.1.2voyageai
+geopandas==1.1.2
+voyageai
 chromadb
 anthropic
 python-dotenv
