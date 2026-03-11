@@ -17,14 +17,27 @@ Run from the RAG/ directory:
 """
 
 import os
-import sys
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
+# ---------------------------------------------------------------------------
+# SECRET HANDLING
+# ---------------------------------------------------------------------------
+
+# Streamlit Cloud stores secrets differently — pull them into env vars
+try:
+    import streamlit as st
+    if "ANTHROPIC_API_KEY" in st.secrets:
+        os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
+    if "VOYAGE_API_KEY" in st.secrets:
+        os.environ["VOYAGE_API_KEY"] = st.secrets["VOYAGE_API_KEY"]
+except Exception:
+    pass  # Not running in Streamlit, use .env or environment variables
+
 
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
-from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
-
 CHROMA_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
 COLLECTION_NAME = "climatefeat_corpus"
 VOYAGE_MODEL = "voyage-3.5-lite"
