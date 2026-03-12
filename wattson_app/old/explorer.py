@@ -35,7 +35,7 @@ for key_name in ("ANTHROPIC_API_KEY", "VOYAGE_API_KEY"):
             pass
 
 # ---------------------------------------------------------------------------
-# FIPS MAPPING
+# FIPS + TAC MAPPINGS
 # ---------------------------------------------------------------------------
 COUNTY_FIPS = {
     "Alameda": "06001", "Alpine": "06003", "Amador": "06005", "Butte": "06007",
@@ -57,7 +57,6 @@ COUNTY_FIPS = {
 }
 FIPS_COUNTY = {v: k for k, v in COUNTY_FIPS.items()}
 
-# TAC assignments for coloring the county map by TAC
 COUNTY_TAC = {
     'Alameda': 'PGE', 'Alpine': 'PGE', 'Amador': 'PGE', 'Butte': 'PGE',
     'Calaveras': 'PGE', 'Colusa': 'PGE', 'Contra Costa': 'PGE', 'Del Norte': 'PGE',
@@ -85,14 +84,12 @@ def load_viz_data():
     county = pd.read_parquet(os.path.join(DATA_DIR, "viz_county_peaks.parquet"))
     tac = pd.read_parquet(os.path.join(DATA_DIR, "viz_tac_peaks.parquet"))
     state = pd.read_parquet(os.path.join(DATA_DIR, "viz_state_peaks.parquet"))
-    # Add FIPS codes
     county["fips"] = county["county"].map(COUNTY_FIPS)
     county["tac_area"] = county["county"].map(COUNTY_TAC).fillna("Other")
     return county, tac, state
 
 @st.cache_data
 def load_ca_geojson():
-    """Download US counties GeoJSON and filter to California."""
     url = "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json"
     with urlopen(url) as response:
         counties = json.loads(response.read().decode())
@@ -105,12 +102,11 @@ county_df, tac_df, state_df = load_viz_data()
 ca_geojson = load_ca_geojson()
 
 # ---------------------------------------------------------------------------
-# LOAD RAG (optional — graceful fallback if keys missing)
+# LOAD RAG (graceful fallback)
 # ---------------------------------------------------------------------------
 rag_available = False
 try:
     from rag_query import load_collection, retrieve, generate_answer
-
     missing = [k for k in ("VOYAGE_API_KEY", "ANTHROPIC_API_KEY") if not os.environ.get(k)]
     if not missing:
         @st.cache_resource
@@ -143,70 +139,52 @@ with st.sidebar:
     pct_key = "1pct" if peak_type == "Top 1%" else "5pct"
 
     st.divider()
-    st.caption("Click a county on the map to ask the RAG about it.")
     st.caption("Data: ClimateFEAT transformer ensemble projections")
 
 # ---------------------------------------------------------------------------
-# MAP COLOR SETTINGS
+# PREPARE MAP DATA
 # ---------------------------------------------------------------------------
 if color_metric == "Growth vs 2025 (%)":
     color_col = f"peak_{pct_key}_pct_change_vs_2025"
     color_label = "Growth vs 2025 (%)"
-    color_scale = "RdYlGn_r"  # green=low growth, red=high growth
+    color_scale = "RdYlGn_r"
     color_range = [-10, 50]
 elif color_metric == "Peak demand (MWh)":
     color_col = f"peak_{pct_key}_mean"
     color_label = f"{peak_type} Peak Demand (MWh)"
     color_scale = "YlOrRd"
-    color_range = None  # auto
+    color_range = None
 else:
     color_col = f"peak_{pct_key}_spread"
     color_label = "Ensemble Spread (MWh)"
     color_scale = "Purples"
     color_range = None
 
-# ---------------------------------------------------------------------------
-# FILTER DATA
-# ---------------------------------------------------------------------------
 map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
-
-# Add spread column
 map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
-
-# Handle NaN in growth for years before 2025
 if color_col == f"peak_{pct_key}_pct_change_vs_2025":
     map_data[color_col] = map_data[color_col].fillna(0)
 
 # ---------------------------------------------------------------------------
-# HEADER
+# HEADER + METRICS
 # ---------------------------------------------------------------------------
 st.title("🗺️ ClimateFEAT Explorer")
 st.caption(f"{scenario} · {year} · {peak_type} peak days · Color: {color_metric}")
-st.divider()
 
-# ---------------------------------------------------------------------------
-# METRIC CARDS
-# ---------------------------------------------------------------------------
 state_row = state_df[(state_df["scenario"] == scenario_key) & (state_df["year"] == year)]
 if len(state_row) > 0:
     sr = state_row.iloc[0]
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric(
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric(
         "Statewide Peak (top 1%)",
         f"{sr['peak_1pct_mean']:,.0f} MWh",
         f"{sr.get('peak_1pct_pct_change_vs_2025', 0):+.1f}% vs 2025" if year >= 2025 else None,
     )
-    col2.metric(
-        "Ensemble Range",
-        f"{sr['peak_1pct_p10']:,.0f}–{sr['peak_1pct_p90']:,.0f}",
-    )
-    col3.metric(
-        "Firm+Storage",
-        f"{sr.get('capacity_total', 72041):,.0f} MW",
-    )
+    m2.metric("Ensemble Range", f"{sr['peak_1pct_p10']:,.0f}–{sr['peak_1pct_p90']:,.0f}")
+    m3.metric("Firm+Storage", f"{sr.get('capacity_total', 72041):,.0f} MW")
     margin = sr.get("margin_1pct", None)
     if margin is not None:
-        col4.metric(
+        m4.metric(
             "Capacity Margin",
             f"{margin:+,.0f} MW",
             delta=f"{'Surplus' if margin > 0 else 'DEFICIT'}",
@@ -216,140 +194,133 @@ if len(state_row) > 0:
 st.divider()
 
 # ---------------------------------------------------------------------------
-# MAP
+# SIDE-BY-SIDE: MAP (left) + CHAT (right)
 # ---------------------------------------------------------------------------
-fig = px.choropleth_mapbox(
-    map_data,
-    geojson=ca_geojson,
-    locations="fips",
-    color=color_col,
-    color_continuous_scale=color_scale,
-    range_color=color_range,
-    mapbox_style="carto-darkmatter",
-    zoom=4.8,
-    center={"lat": 37.5, "lon": -119.5},
-    opacity=0.8,
-    hover_name="county",
-    hover_data={
-        "fips": False,
-        color_col: False,
-        f"peak_{pct_key}_mean": ":.0f",
-        f"peak_{pct_key}_p10": ":.0f",
-        f"peak_{pct_key}_p90": ":.0f",
-        f"peak_{pct_key}_pct_change_vs_2025": ":.1f",
-        "tac_area": True,
-        "peak_month_mode": ":.0f",
-    },
-    labels={
-        f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
-        f"peak_{pct_key}_p10": "10th Pct",
-        f"peak_{pct_key}_p90": "90th Pct",
-        f"peak_{pct_key}_pct_change_vs_2025": "Growth vs 2025 (%)",
-        "tac_area": "TAC Area",
-        "peak_month_mode": "Peak Month",
-        color_col: color_label,
-    },
-)
+map_col, chat_col = st.columns([3, 2])
 
-fig.update_layout(
-    margin={"r": 0, "t": 0, "l": 0, "b": 0},
-    height=600,
-    coloraxis_colorbar=dict(
-        title=color_label,
-        thickness=15,
-        len=0.7,
-    ),
-    paper_bgcolor="rgba(0,0,0,0)",
-)
-
-st.plotly_chart(fig, use_container_width=True, key="county_map")
-
-# ---------------------------------------------------------------------------
-# TAC SUMMARY TABLE
-# ---------------------------------------------------------------------------
-with st.expander("📊 TAC Area Summary"):
-    caiso_tacs = ["PGE", "SCE", "SDGE"]
-    tac_year = tac_df[
-        (tac_df["scenario"] == scenario_key) &
-        (tac_df["year"] == year) &
-        (tac_df["tac"].isin(caiso_tacs))
-    ].copy()
-
-    if len(tac_year) > 0:
-        display_cols = {
-            "tac": "TAC",
-            f"peak_{pct_key}_mean": f"{peak_type} Peak (MW)",
+# ── MAP ──────────────────────────────────────────────────────────────────────
+with map_col:
+    fig = px.choropleth_mapbox(
+        map_data,
+        geojson=ca_geojson,
+        locations="fips",
+        color=color_col,
+        color_continuous_scale=color_scale,
+        range_color=color_range,
+        mapbox_style="carto-darkmatter",
+        zoom=4.8,
+        center={"lat": 37.5, "lon": -119.5},
+        opacity=0.8,
+        hover_name="county",
+        hover_data={
+            "fips": False,
+            color_col: False,
+            f"peak_{pct_key}_mean": ":.0f",
+            f"peak_{pct_key}_p10": ":.0f",
+            f"peak_{pct_key}_p90": ":.0f",
+            f"peak_{pct_key}_pct_change_vs_2025": ":.1f",
+            "tac_area": True,
+            "peak_month_mode": ":.0f",
+        },
+        labels={
+            f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
             f"peak_{pct_key}_p10": "10th Pct",
             f"peak_{pct_key}_p90": "90th Pct",
-            "capacity_total": "Firm+Storage (MW)",
-            f"margin_{pct_key}": "Margin (MW)",
-        }
-        tac_display = tac_year[[c for c in display_cols.keys() if c in tac_year.columns]].copy()
-        tac_display.columns = [display_cols.get(c, c) for c in tac_display.columns]
+            f"peak_{pct_key}_pct_change_vs_2025": "Growth vs 2025 (%)",
+            "tac_area": "TAC Area",
+            "peak_month_mode": "Peak Month",
+            color_col: color_label,
+        },
+    )
+    fig.update_layout(
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        height=550,
+        coloraxis_colorbar=dict(title=color_label, thickness=15, len=0.7),
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True, key="county_map")
 
-        for col in tac_display.columns:
-            if col != "TAC":
-                tac_display[col] = tac_display[col].map(lambda x: f"{x:,.0f}" if pd.notna(x) else "—")
+    # Tables below the map
+    with st.expander("📊 TAC Area Summary"):
+        caiso_tacs = ["PGE", "SCE", "SDGE"]
+        tac_year = tac_df[
+            (tac_df["scenario"] == scenario_key) &
+            (tac_df["year"] == year) &
+            (tac_df["tac"].isin(caiso_tacs))
+        ].copy()
+        if len(tac_year) > 0:
+            display = tac_year[["tac", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
+                                f"peak_{pct_key}_p90", "capacity_total", f"margin_{pct_key}"]].copy()
+            display.columns = ["TAC", f"{peak_type} Peak (MW)", "10th Pct", "90th Pct",
+                               "Firm+Storage (MW)", "Margin (MW)"]
+            for col in display.columns:
+                if col != "TAC":
+                    display[col] = display[col].map(lambda x: f"{x:,.0f}" if pd.notna(x) else "—")
+            st.dataframe(display, hide_index=True, use_container_width=True)
 
-        st.dataframe(tac_display, hide_index=True, use_container_width=True)
+    with st.expander(f"🔥 Top 15 Counties — {year}"):
+        top15 = map_data.nlargest(15, f"peak_{pct_key}_mean")[
+            ["county", "tac_area", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
+             f"peak_{pct_key}_p90", f"peak_{pct_key}_pct_change_vs_2025"]
+        ].copy()
+        top15.columns = ["County", "TAC", "Peak (MWh)", "10th Pct", "90th Pct", "Growth (%)"]
+        for col in ["Peak (MWh)", "10th Pct", "90th Pct"]:
+            top15[col] = top15[col].map("{:,.0f}".format)
+        top15["Growth (%)"] = top15["Growth (%)"].map("{:+.1f}%".format)
+        st.dataframe(top15, hide_index=True, use_container_width=True)
 
-# ---------------------------------------------------------------------------
-# TOP COUNTIES TABLE
-# ---------------------------------------------------------------------------
-with st.expander(f"🔥 Top 15 Counties by {peak_type} Peak — {year}"):
-    top15 = map_data.nlargest(15, f"peak_{pct_key}_mean")[
-        ["county", "tac_area", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
-         f"peak_{pct_key}_p90", f"peak_{pct_key}_pct_change_vs_2025"]
-    ].copy()
-    top15.columns = ["County", "TAC", "Peak (MWh)", "10th Pct", "90th Pct", "Growth vs 2025 (%)"]
-    for col in ["Peak (MWh)", "10th Pct", "90th Pct"]:
-        top15[col] = top15[col].map("{:,.0f}".format)
-    top15["Growth vs 2025 (%)"] = top15["Growth vs 2025 (%)"].map("{:+.1f}%".format)
-    st.dataframe(top15, hide_index=True, use_container_width=True)
+# ── CHAT ─────────────────────────────────────────────────────────────────────
+with chat_col:
+    st.markdown("#### 💬 Ask about what you see")
 
-# ---------------------------------------------------------------------------
-# RAG CHAT
-# ---------------------------------------------------------------------------
-st.divider()
-st.subheader("💬 Ask about what you see")
+    if not rag_available:
+        st.info("RAG chat unavailable — API keys not configured.")
+    else:
+        # Chat state
+        if "explorer_messages" not in st.session_state:
+            st.session_state.explorer_messages = []
 
-if not rag_available:
-    st.info("RAG chat unavailable — API keys not configured.")
-else:
-    # Chat state
-    if "explorer_messages" not in st.session_state:
-        st.session_state.explorer_messages = []
+        # Contextual suggestion buttons
+        if len(map_data) > 0:
+            top_county = map_data.nlargest(1, f"peak_{pct_key}_mean").iloc[0]["county"]
+            suggestions = [
+                f"What drives peak demand in {top_county}?",
+                f"How does {scenario} compare to CEC at {year}?",
+                f"What is SCE's capacity margin in {year}?",
+                "Why do SSP scenarios converge?",
+            ]
+            sg1, sg2 = st.columns(2)
+            for i, q in enumerate(suggestions):
+                col = sg1 if i % 2 == 0 else sg2
+                if col.button(q, key=f"sug_{i}", use_container_width=True):
+                    st.session_state["explorer_input"] = q
 
-    # Auto-generate a contextual question suggestion
-    if len(map_data) > 0:
-        top_county = map_data.nlargest(1, f"peak_{pct_key}_mean").iloc[0]["county"]
-        suggestions = [
-            f"What drives peak demand in {top_county} county?",
-            f"How does the {scenario} projection compare to the CEC forecast at {year}?",
-            f"What is the capacity margin for SCE in {year}?",
-            f"Why do SSP scenarios converge through 2040?",
-        ]
-        cols = st.columns(len(suggestions))
-        for i, q in enumerate(suggestions):
-            if cols[i].button(q, key=f"suggest_{i}", use_container_width=True):
-                st.session_state["explorer_input"] = q
+        st.markdown("---")
 
-    # Chat history
-    for msg in st.session_state.explorer_messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+        # Chat history in scrollable container
+        chat_container = st.container(height=350)
+        with chat_container:
+            for msg in st.session_state.explorer_messages:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
 
-    # Input
-    prefill = st.session_state.pop("explorer_input", None)
-    if prompt := (prefill or st.chat_input("Ask about the map, projections, or capacity...")):
-        st.session_state.explorer_messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        # IMPORTANT: always call chat_input BEFORE checking prefill
+        # This ensures the widget is always rendered
+        user_typed = st.chat_input("Ask about the map...", key="explorer_chat")
+        prefill = st.session_state.pop("explorer_input", None)
+        prompt = prefill or user_typed
 
-        with st.chat_message("assistant"):
-            with st.spinner("Searching corpus..."):
-                chunks = retrieve(prompt, collection, None)
-                answer = generate_answer(prompt, chunks)
-            st.markdown(answer)
+        if prompt:
+            st.session_state.explorer_messages.append({"role": "user", "content": prompt})
 
-        st.session_state.explorer_messages.append({"role": "assistant", "content": answer})
+            with chat_container:
+                with st.chat_message("user"):
+                    st.markdown(prompt)
+
+                with st.chat_message("assistant"):
+                    with st.spinner("Searching corpus..."):
+                        chunks = retrieve(prompt, collection, None)
+                        answer = generate_answer(prompt, chunks)
+                    st.markdown(answer)
+
+            st.session_state.explorer_messages.append({"role": "assistant", "content": answer})
