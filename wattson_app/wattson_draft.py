@@ -77,9 +77,6 @@ COUNTY_TAC = {
     'Inyo': 'SCE/LADWP', 'Sacramento': 'PGE/SMUD', 'Mariposa': 'PGE',
 }
 
-# CAISO firm + storage capacity (MW) — GEM March 2026 + CEC Storage Oct 2025
-CAPACITY_TOTAL = 72041  # 49,754 firm + 22,287 storage
-
 # ---------------------------------------------------------------------------
 # LOAD DATA
 # ---------------------------------------------------------------------------
@@ -95,9 +92,10 @@ def load_viz_data():
     county = pd.read_parquet(os.path.join(DATA_DIR, "viz_county_peaks.parquet"))
     tac = pd.read_parquet(os.path.join(DATA_DIR, "viz_tac_peaks.parquet"))
     state = pd.read_parquet(os.path.join(DATA_DIR, "viz_state_peaks.parquet"))
+    capacity = pd.read_parquet(os.path.join(DATA_DIR, "viz_capacity_trajectory.parquet"))
     county["fips"] = county["county"].map(COUNTY_FIPS)
     county["tac_area"] = county["county"].map(COUNTY_TAC).fillna("Other")
-    return county, tac, state
+    return county, tac, state, capacity
 
 @st.cache_data
 def load_ca_geojson():
@@ -110,7 +108,7 @@ def load_ca_geojson():
     return {"type": "FeatureCollection", "features": ca_features}
 
 summary_370, summary_245, hist_annual = load_forecast_data()
-county_df, tac_df, state_df = load_viz_data()
+county_df, tac_df, state_df, capacity_df = load_viz_data()
 ca_geojson = load_ca_geojson()
 
 # ---------------------------------------------------------------------------
@@ -130,7 +128,7 @@ except Exception:
     pass
 
 # ---------------------------------------------------------------------------
-# HEADER
+# HEADER + TOP CONTROLS
 # ---------------------------------------------------------------------------
 st.title("⚡ ClimateFEAT Explorer")
 st.caption(
@@ -138,200 +136,98 @@ st.caption(
     "58 counties, 2018–2040, CMIP6 ensemble uncertainty"
 )
 
-# ---------------------------------------------------------------------------
-# CONTROLS — horizontal row
-# ---------------------------------------------------------------------------
-c1, c2, c3, c4 = st.columns([1.5, 1.5, 1.5, 1.5])
-
-with c1:
+tc1, tc2 = st.columns([1.5, 1.5])
+with tc1:
     scenario = st.selectbox("Scenario", ["SSP3-7.0", "SSP2-4.5"], index=0)
     scenario_key = "ssp370" if scenario == "SSP3-7.0" else "ssp245"
-
-with c2:
+with tc2:
     peak_type = st.selectbox("Peak threshold", ["Top 1%", "Top 5%"], index=0)
     pct_key = "1pct" if peak_type == "Top 1%" else "5pct"
 
-with c3:
-    color_metric = st.selectbox(
-        "Map color",
-        ["Growth vs 2025 (%)", "Peak demand (MWh)", "Ensemble spread"],
-        index=0,
-    )
+# ═══════════════════════════════════════════════════════════════════════════
+# MAIN SECTION: CHAT (left) | MAP (center) | CONTROLS (right)
+# ═══════════════════════════════════════════════════════════════════════════
+chat_col, map_col, ctrl_col = st.columns([2, 3, 1.2], gap="medium")
 
-with c4:
-    show_options = st.multiselect(
-        "Forecast chart",
-        ["Historical actuals", "Ensemble range", "Capacity line"],
-        default=["Historical actuals", "Capacity line"],
-    )
+# ── CHAT (left) ──
+with chat_col:
+    st.markdown("#### 💬 Ask about what you see")
 
-# ---------------------------------------------------------------------------
-# FORECAST TIME SERIES — full width, with vertical reference line
-# ---------------------------------------------------------------------------
-st.divider()
+    if not rag_available:
+        st.info("RAG unavailable — set API keys in Streamlit Secrets.")
+    else:
+        temp_year = st.session_state.get("explorer_year", 2030)
+        temp_map = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == temp_year)]
+        top_county = temp_map.nlargest(1, f"peak_{pct_key}_mean").iloc[0]["county"] if len(temp_map) > 0 else "Los Angeles"
 
-# Pick the right summary based on scenario
-summary = summary_370 if scenario_key == "ssp370" else summary_245
-summary_other = summary_245 if scenario_key == "ssp370" else summary_370
-other_label = "SSP2-4.5" if scenario_key == "ssp370" else "SSP3-7.0"
+        suggestions = [
+            f"What drives demand in {top_county}?",
+            "ClimateFEAT vs CEC comparison?",
+            "SCE capacity margin?",
+            "Why do SSPs converge?",
+        ]
+        s1, s2 = st.columns(2)
+        with s1:
+            if st.button(suggestions[0], key="sug_0", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[0]
+            if st.button(suggestions[2], key="sug_2", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[2]
+        with s2:
+            if st.button(suggestions[1], key="sug_1", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[1]
+            if st.button(suggestions[3], key="sug_3", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[3]
 
-fig_ts = go.Figure()
+        if "explorer_messages" not in st.session_state:
+            st.session_state.explorer_messages = []
 
-# Primary scenario ensemble mean
-fig_ts.add_trace(go.Scatter(
-    x=summary["date"], y=summary["mean"],
-    mode="lines+markers", name=f"{scenario} ensemble mean",
-    line=dict(color="rgba(50, 130, 200, 0.9)", width=3),
-    marker=dict(size=6, color="rgba(50, 130, 200, 0.9)"),
-    customdata=np.stack([summary["low"], summary["high"], summary["mean"]], axis=1),
-    hovertemplate=(
-        f"<b>{scenario} Ensemble Mean</b><br>"
-        "Year: %{x|%Y}<br>"
-        "Mean: %{customdata[2]:,.0f} MWh<br>"
-        "10th pct: %{customdata[0]:,.0f}<br>"
-        "90th pct: %{customdata[1]:,.0f}<extra></extra>"
-    ),
-))
+        if st.session_state.explorer_messages:
+            chat_container = st.container(height=400)
+            with chat_container:
+                for msg in st.session_state.explorer_messages:
+                    with st.chat_message(msg["role"]):
+                        st.markdown(msg["content"])
+        else:
+            chat_container = st.container()
 
-# Ensemble range
-if "Ensemble range" in show_options:
-    fig_ts.add_trace(go.Scatter(
-        x=pd.concat([summary["date"], summary["date"][::-1]]),
-        y=pd.concat([summary["high"], summary["low"][::-1]]),
-        fill="toself", fillcolor="rgba(50, 130, 200, 0.12)",
-        line=dict(color="rgba(255,255,255,0)"),
-        name=f"{scenario} range (10th–90th)", hoverinfo="skip",
-    ))
+        user_input = st.chat_input("Ask about projections, capacity, methodology...", key="explorer_chat")
+        prefill = st.session_state.pop("explorer_input", None)
+        prompt = prefill or user_input
 
-# Other scenario as faded line for comparison
-fig_ts.add_trace(go.Scatter(
-    x=summary_other["date"], y=summary_other["mean"],
-    mode="lines", name=f"{other_label} mean",
-    line=dict(color="rgba(130, 130, 130, 0.4)", width=1.5, dash="dot"),
-    hovertemplate=f"<b>{other_label}</b><br>Year: %{{x|%Y}}<br>Mean: %{{y:,.0f}} MWh<extra></extra>",
-))
+        if prompt:
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            with st.chat_message("assistant"):
+                    with st.spinner("Searching corpus..."):
+                        chunks = retrieve(prompt, collection, None)
+                        answer = generate_answer(prompt, chunks)
+                    st.markdown(answer)
+            st.session_state.explorer_messages.append({"role": "assistant", "content": answer})
 
-# Historical actuals
-if "Historical actuals" in show_options:
-    fig_ts.add_trace(go.Scatter(
-        x=hist_annual["date"], y=hist_annual["Max_Daily_Electricity_Usage"],
-        mode="lines+markers", name="Historical actuals",
-        line=dict(color="firebrick", width=2.5, dash="dash"),
-        marker=dict(size=7, color="firebrick"),
-        hovertemplate="<b>Historical</b><br>Year: %{x|%Y}<br>MWh: %{y:,.0f}<extra></extra>",
-    ))
-
-# Capacity line
-if "Capacity line" in show_options:
-    fig_ts.add_hline(
-        y=CAPACITY_TOTAL,
-        line_dash="dash", line_color="rgba(255, 180, 50, 0.7)", line_width=2,
-        annotation_text=f"CAISO Firm+Storage: {CAPACITY_TOTAL:,} MW",
-        annotation_position="top left",
-        annotation_font_color="rgba(255, 180, 50, 0.9)",
-        annotation_font_size=12,
-    )
-
-fig_ts.update_layout(
-    xaxis_title="Year",
-    yaxis_title="Peak Demand (MWh — top 5% days)",
-    xaxis=dict(tickfont=dict(size=14)),
-    yaxis=dict(tickfont=dict(size=14)),
-    hovermode="x unified",
-    height=350,
-    margin={"r": 10, "t": 10, "l": 60, "b": 40},
-    legend=dict(orientation="h", y=-0.15, font=dict(size=12)),
-    template="plotly_dark",
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-)
-
-# -- YEAR SLIDER + REFERENCE LINE --
-year = st.slider("Select year — drag to update the map below", min_value=2018, max_value=2040, value=2030, step=1)
-
-# Add vertical reference line at selected year
-fig_ts.add_vline(
-    x=pd.Timestamp(f"{year}-07-01"),
-    line_dash="solid", line_color="rgba(255, 255, 255, 0.6)", line_width=2,
-)
-# Add annotation for the selected year's value
-year_row = summary[summary["date"].dt.year == year]
-if len(year_row) > 0:
-    yr_val = year_row["mean"].values[0]
-    fig_ts.add_annotation(
-        x=pd.Timestamp(f"{year}-07-01"), y=yr_val,
-        text=f"<b>{year}</b><br>{yr_val:,.0f} MWh",
-        showarrow=True, arrowhead=2, arrowcolor="white",
-        font=dict(color="white", size=12),
-        bgcolor="rgba(50, 130, 200, 0.7)",
-        bordercolor="rgba(50, 130, 200, 0.9)",
-        borderwidth=1,
-    )
-
-st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
-
-# ---------------------------------------------------------------------------
-# METRIC CARDS for selected year
-# ---------------------------------------------------------------------------
-state_row = state_df[(state_df["scenario"] == scenario_key) & (state_df["year"] == year)]
-if len(state_row) > 0:
-    sr = state_row.iloc[0]
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric(
-        f"Statewide {peak_type} Peak",
-        f"{sr[f'peak_{pct_key}_mean']:,.0f} MWh",
-        f"{sr.get(f'peak_{pct_key}_pct_change_vs_2025', 0):+.1f}% vs 2025" if year >= 2025 else None,
-    )
-    m2.metric(
-        "Ensemble Range",
-        f"{sr[f'peak_{pct_key}_p10']:,.0f}–{sr[f'peak_{pct_key}_p90']:,.0f}",
-    )
-    m3.metric("CAISO Firm+Storage", f"{CAPACITY_TOTAL:,} MW")
-    margin = sr.get(f"margin_{pct_key}", None)
-    if margin is not None:
-        m4.metric(
-            "Capacity Margin",
-            f"{margin:+,.0f} MW",
-            delta=f"{'Surplus' if margin > 0 else 'DEFICIT'}",
-            delta_color="normal" if margin > 0 else "inverse",
-        )
-
-st.divider()
-
-# ---------------------------------------------------------------------------
-# MAP COLOR CONFIG
-# ---------------------------------------------------------------------------
-if color_metric == "Growth vs 2025 (%)":
-    color_col = f"peak_{pct_key}_pct_change_vs_2025"
-    color_label = "Growth vs 2025 (%)"
-    color_scale = "RdYlGn_r"
-    color_range = [-10, 50]
-elif color_metric == "Peak demand (MWh)":
-    color_col = f"peak_{pct_key}_mean"
-    color_label = f"{peak_type} Peak (MWh)"
-    color_scale = "YlOrRd"
-    color_range = None
-else:
-    color_col = f"peak_{pct_key}_spread"
-    color_label = "Ensemble Spread (MWh)"
-    color_scale = "Purples"
-    color_range = None
-
-# ---------------------------------------------------------------------------
-# FILTER DATA FOR MAP
-# ---------------------------------------------------------------------------
-map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
-map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
-if color_col == f"peak_{pct_key}_pct_change_vs_2025":
-    map_data[color_col] = map_data[color_col].fillna(0)
-
-# ---------------------------------------------------------------------------
-# SIDE-BY-SIDE: MAP (left) + CHAT (right)
-# ---------------------------------------------------------------------------
-map_col, chat_col = st.columns([3, 2])
-
-# ── MAP ──
+# ── MAP (center) ──
 with map_col:
+    year = st.session_state.get("explorer_year", 2030)
+    map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
+    map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
+
+    color_metric = st.session_state.get("map_color", "Growth vs 2025 (%)")
+    if color_metric == "Growth vs 2025 (%)":
+        color_col = f"peak_{pct_key}_pct_change_vs_2025"
+        color_label = "Growth vs 2025 (%)"
+        color_scale = "RdYlGn_r"
+        color_range = [-10, 50]
+        map_data[color_col] = map_data[color_col].fillna(0)
+    elif color_metric == "Peak demand (MWh)":
+        color_col = f"peak_{pct_key}_mean"
+        color_label = f"{peak_type} Peak (MWh)"
+        color_scale = "YlOrRd"
+        color_range = None
+    else:
+        color_col = f"peak_{pct_key}_spread"
+        color_label = "Ensemble Spread (MWh)"
+        color_scale = "Purples"
+        color_range = None
+
     fig_map = px.choropleth_mapbox(
         map_data,
         geojson=ca_geojson,
@@ -366,33 +262,174 @@ with map_col:
     )
     fig_map.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        height=500,
-        coloraxis_colorbar=dict(title=color_label, thickness=15, len=0.7),
+        height=480,
+        coloraxis_colorbar=dict(title=color_label, thickness=12, len=0.6, x=1.0),
         paper_bgcolor="rgba(0,0,0,0)",
     )
     st.plotly_chart(fig_map, use_container_width=True, key="county_map")
 
-    # Tables below map
-    tab1, tab2 = st.tabs(["📊 TAC Summary", f"🔥 Top 15 Counties"])
+# ── CONTROLS (right panel) ──
+with ctrl_col:
+    st.markdown("**Map color**")
+    color_choice = st.radio(
+        "Color by",
+        ["Growth vs 2025 (%)", "Peak demand (MWh)", "Ensemble spread"],
+        index=0,
+        label_visibility="collapsed",
+        key="map_color",
+    )
 
-    with tab1:
-        caiso_tacs = ["PGE", "SCE", "SDGE"]
-        tac_year = tac_df[
-            (tac_df["scenario"] == scenario_key) &
-            (tac_df["year"] == year) &
-            (tac_df["tac"].isin(caiso_tacs))
-        ].copy()
-        if len(tac_year) > 0:
-            display = tac_year[["tac", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
-                                f"peak_{pct_key}_p90", "capacity_total", f"margin_{pct_key}"]].copy()
-            display.columns = ["TAC", f"{peak_type} Peak (MW)", "10th Pct", "90th Pct",
-                               "Firm+Storage (MW)", "Margin (MW)"]
-            for col in display.columns:
-                if col != "TAC":
-                    display[col] = display[col].map(lambda x: f"{x:,.0f}" if pd.notna(x) else "—")
-            st.dataframe(display, hide_index=True, use_container_width=True)
+    st.markdown("---")
+    st.markdown("**Chart layers**")
+    show_historical = st.checkbox("Historical actuals", value=True, key="layer_hist")
+    show_ensemble = st.checkbox("Ensemble range", value=False, key="layer_ens")
+    show_capacity = st.checkbox("Capacity lines", value=True, key="layer_cap")
+    show_storage_fill = st.checkbox("Storage band", value=True, key="layer_fill")
 
-    with tab2:
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FORECAST CHART — full width
+# ═══════════════════════════════════════════════════════════════════════════
+st.divider()
+year = st.slider("Year", min_value=2018, max_value=2040, value=2030, step=1, key="explorer_year")
+summary = summary_370 if scenario_key == "ssp370" else summary_245
+summary_other = summary_245 if scenario_key == "ssp370" else summary_370
+other_label = "SSP2-4.5" if scenario_key == "ssp370" else "SSP3-7.0"
+
+fig_ts = go.Figure()
+
+# Storage band fill
+if show_capacity and show_storage_fill:
+    fig_ts.add_trace(go.Scatter(
+        x=pd.concat([capacity_df["date"], capacity_df["date"][::-1]]),
+        y=pd.concat([capacity_df["total_mw"], capacity_df["firm_gen_mw"][::-1]]),
+        fill="toself",
+        fillcolor="rgba(255, 180, 50, 0.15)",
+        line=dict(color="rgba(255,255,255,0)"),
+        name="4h battery band",
+        hoverinfo="skip",
+        legendgroup="capacity",
+    ))
+
+# Firm gen line
+if show_capacity:
+    fig_ts.add_trace(go.Scatter(
+        x=capacity_df["date"], y=capacity_df["firm_gen_mw"],
+        mode="lines", name="Firm gen (gas+hydro+nuke+geo+bio)",
+        line=dict(color="rgba(255, 90, 50, 0.7)", width=2, dash="dash"),
+        legendgroup="capacity",
+        hovertemplate="<b>Firm Gen</b><br>Year: %{x|%Y}<br>%{y:,.0f} MW<extra></extra>",
+    ))
+
+# Firm + Storage line
+if show_capacity:
+    fig_ts.add_trace(go.Scatter(
+        x=capacity_df["date"], y=capacity_df["total_mw"],
+        mode="lines", name="Firm + 4h battery",
+        line=dict(color="rgba(255, 180, 50, 0.9)", width=2.5),
+        legendgroup="capacity",
+        customdata=np.stack([
+            capacity_df["firm_gen_mw"], capacity_df["storage_mw"], capacity_df["total_mw"]
+        ], axis=1),
+        hovertemplate=(
+            "<b>Firm + 4h Battery</b><br>"
+            "Year: %{x|%Y}<br>"
+            "Firm: %{customdata[0]:,.0f} MW<br>"
+            "Battery: %{customdata[1]:,.0f} MW<br>"
+            "<b>Total: %{customdata[2]:,.0f} MW</b><extra></extra>"
+        ),
+    ))
+
+# Primary scenario ensemble mean
+fig_ts.add_trace(go.Scatter(
+    x=summary["date"], y=summary["mean"],
+    mode="lines+markers", name=f"{scenario} ensemble mean",
+    line=dict(color="rgba(50, 130, 200, 0.9)", width=3),
+    marker=dict(size=5, color="rgba(50, 130, 200, 0.9)"),
+    customdata=np.stack([summary["low"], summary["high"], summary["mean"]], axis=1),
+    hovertemplate=(
+        f"<b>{scenario} Ensemble Mean</b><br>"
+        "Year: %{x|%Y}<br>"
+        "Mean: %{customdata[2]:,.0f} MWh<br>"
+        "10th: %{customdata[0]:,.0f}<br>"
+        "90th: %{customdata[1]:,.0f}<extra></extra>"
+    ),
+))
+
+# Ensemble range band
+if show_ensemble:
+    fig_ts.add_trace(go.Scatter(
+        x=pd.concat([summary["date"], summary["date"][::-1]]),
+        y=pd.concat([summary["high"], summary["low"][::-1]]),
+        fill="toself", fillcolor="rgba(50, 130, 200, 0.12)",
+        line=dict(color="rgba(255,255,255,0)"),
+        name=f"{scenario} range (p10-p90)", hoverinfo="skip",
+    ))
+
+# Other scenario faded
+fig_ts.add_trace(go.Scatter(
+    x=summary_other["date"], y=summary_other["mean"],
+    mode="lines", name=f"{other_label} mean",
+    line=dict(color="rgba(130, 130, 130, 0.4)", width=1.5, dash="dot"),
+    hovertemplate=f"<b>{other_label}</b><br>Year: %{{x|%Y}}<br>Mean: %{{y:,.0f}} MWh<extra></extra>",
+))
+
+# Historical actuals
+if show_historical:
+    fig_ts.add_trace(go.Scatter(
+        x=hist_annual["date"], y=hist_annual["Max_Daily_Electricity_Usage"],
+        mode="lines+markers", name="Historical actuals",
+        line=dict(color="firebrick", width=2.5, dash="dash"),
+        marker=dict(size=6, color="firebrick"),
+        hovertemplate="<b>Historical</b><br>Year: %{x|%Y}<br>MWh: %{y:,.0f}<extra></extra>",
+    ))
+
+# Vertical reference line
+fig_ts.add_vline(
+    x=pd.Timestamp(f"{year}-07-01"),
+    line_dash="solid", line_color="rgba(255, 255, 255, 0.35)", line_width=1.5,
+)
+
+fig_ts.update_layout(
+    xaxis_title="Year",
+    yaxis_title="Peak Demand / Capacity (MWh / MW)",
+    xaxis=dict(tickfont=dict(size=14)),
+    yaxis=dict(tickfont=dict(size=14)),
+    hovermode="x unified",
+    height=370,
+    margin={"r": 10, "t": 10, "l": 60, "b": 40},
+    legend=dict(orientation="h", y=-0.2, font=dict(size=11)),
+    template="plotly_dark",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+)
+
+st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TABLES
+# ═══════════════════════════════════════════════════════════════════════════
+tab1, tab2 = st.tabs(["📊 TAC Summary", "🔥 Top 15 Counties"])
+
+with tab1:
+    caiso_tacs = ["PGE", "SCE", "SDGE"]
+    tac_year = tac_df[
+        (tac_df["scenario"] == scenario_key) &
+        (tac_df["year"] == year) &
+        (tac_df["tac"].isin(caiso_tacs))
+    ].copy()
+    if len(tac_year) > 0:
+        display = tac_year[["tac", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
+                            f"peak_{pct_key}_p90", "capacity_total", f"margin_{pct_key}"]].copy()
+        display.columns = ["TAC", f"{peak_type} Peak (MW)", "10th Pct", "90th Pct",
+                           "Firm+Storage (MW)", "Margin (MW)"]
+        for col in display.columns:
+            if col != "TAC":
+                display[col] = display[col].map(lambda x: f"{x:,.0f}" if pd.notna(x) else "—")
+        st.dataframe(display, hide_index=True, use_container_width=True)
+
+with tab2:
+    if len(map_data) > 0:
         top15 = map_data.nlargest(15, f"peak_{pct_key}_mean")[
             ["county", "tac_area", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
              f"peak_{pct_key}_p90", f"peak_{pct_key}_pct_change_vs_2025"]
@@ -402,61 +439,3 @@ with map_col:
             top15[col] = top15[col].map("{:,.0f}".format)
         top15["Growth (%)"] = top15["Growth (%)"].map("{:+.1f}%".format)
         st.dataframe(top15, hide_index=True, use_container_width=True)
-
-# ── CHAT ─────────────────────────────────────────────────────────────────────
-with chat_col:
-    st.markdown("#### 💬 Ask about what you see")
-
-    if not rag_available:
-        st.info("RAG chat unavailable — set ANTHROPIC_API_KEY and VOYAGE_API_KEY in Streamlit Secrets.")
-    else:
-        # Contextual suggestions based on current view
-        if len(map_data) > 0:
-            top_county = map_data.nlargest(1, f"peak_{pct_key}_mean").iloc[0]["county"]
-            suggestions = [
-                f"What drives peak demand in {top_county}?",
-                f"How does ClimateFEAT compare to CEC at {year}?",
-                f"What is SCE's capacity margin in {year}?",
-                "Why do SSP scenarios converge through 2040?",
-            ]
-            s1, s2 = st.columns(2)
-            with s1:
-                if st.button(suggestions[0], key="sug_0", use_container_width=True):
-                    st.session_state["explorer_input"] = suggestions[0]
-                if st.button(suggestions[2], key="sug_2", use_container_width=True):
-                    st.session_state["explorer_input"] = suggestions[2]
-            with s2:
-                if st.button(suggestions[1], key="sug_1", use_container_width=True):
-                    st.session_state["explorer_input"] = suggestions[1]
-                if st.button(suggestions[3], key="sug_3", use_container_width=True):
-                    st.session_state["explorer_input"] = suggestions[3]
-
-        # Chat state
-        if "explorer_messages" not in st.session_state:
-            st.session_state.explorer_messages = []
-
-        # Chat history in scrollable container
-        chat_container = st.container(height=350)
-        with chat_container:
-            for msg in st.session_state.explorer_messages:
-                with st.chat_message(msg["role"]):
-                    st.markdown(msg["content"])
-
-        # IMPORTANT: always call chat_input BEFORE checking prefill
-        user_input = st.chat_input("Ask about projections, capacity, or methodology...", key="explorer_chat")
-        prefill = st.session_state.pop("explorer_input", None)
-        prompt = prefill or user_input
-
-        if prompt:
-            st.session_state.explorer_messages.append({"role": "user", "content": prompt})
-
-            with chat_container:
-                with st.chat_message("user"):
-                    st.markdown(prompt)
-                with st.chat_message("assistant"):
-                    with st.spinner("Searching corpus..."):
-                        chunks = retrieve(prompt, collection, None)
-                        answer = generate_answer(prompt, chunks)
-                    st.markdown(answer)
-
-            st.session_state.explorer_messages.append({"role": "assistant", "content": answer})
