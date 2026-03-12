@@ -9,6 +9,10 @@ import os
 import sys
 import streamlit as st
 
+st.write("ANTHRO KEY starts with:", os.environ.get("ANTHROPIC_API_KEY", "NOT SET")[:15])
+st.write("VOYAGE KEY starts with:", os.environ.get("VOYAGE_API_KEY", "NOT SET")[:15])
+st.stop()
+
 # ---------------------------------------------------------------------------
 # Add RAG directory to Python path so we can import rag_query
 # ---------------------------------------------------------------------------
