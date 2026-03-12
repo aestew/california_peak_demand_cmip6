@@ -1,3 +1,11 @@
+"""
+forecast.py — Peak Demand Forecast page for the Wattson Streamlit app
+
+Lives at: wattson_app/pages/forecast.py
+Data at:  wattson_app/data/*.parquet
+"""
+
+import os
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -10,11 +18,12 @@ st.set_page_config(page_title="Peak Demand Forecast", page_icon="⚡️", layout
 # ── LOAD DATA ────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    summary_370 = pd.read_parquet("data/summary_370.parquet")
-    summary_245 = pd.read_parquet("data/summary_245.parquet")
-    monthly_370 = pd.read_parquet("data/monthly_370.parquet")
-    monthly_245 = pd.read_parquet("data/monthly_245.parquet")
-    hist_annual = pd.read_parquet("data/hist_annual.parquet")
+    base = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
+    summary_370 = pd.read_parquet(os.path.join(base, "summary_370.parquet"))
+    summary_245 = pd.read_parquet(os.path.join(base, "summary_245.parquet"))
+    monthly_370 = pd.read_parquet(os.path.join(base, "monthly_370.parquet"))
+    monthly_245 = pd.read_parquet(os.path.join(base, "monthly_245.parquet"))
+    hist_annual = pd.read_parquet(os.path.join(base, "hist_annual.parquet"))
     return summary_370, summary_245, monthly_370, monthly_245, hist_annual
 
 summary_370, summary_245, monthly_370, monthly_245, hist_annual = load_data()
@@ -187,11 +196,11 @@ fig.update_layout(
         orientation="v", x=1.01, y=1,
         font=dict(size=14),
         groupclick="togglegroup",
-        grouptitlefont=dict(size=16)
+        grouptitlefont=dict(size=16),
     ),
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)"
+    plot_bgcolor="rgba(0,0,0,0)",
 )
 
 st.plotly_chart(fig, use_container_width=True)
