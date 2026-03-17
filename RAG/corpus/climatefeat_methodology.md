@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-ClimateFEAT is a multi-stream transformer model that predicts per-capita electricity demand across California's 58 counties using downscaled CMIP6 climate projections. The model uses five parallel attention streams with cross-attention fusion, each processing a distinct feature group through its own self-attention layers before combining them.
+ClimateFEAT is a multi-stream transformer model that predicts per-capita electricity demand across California's 58 counties using downscaled CMIP6 climate projections. The model uses five parallel attention streams with cross-attention fusion, each processing a distinct feature group through its own self-attention layers before combining them. Stream encoders use SiLU (Sigmoid Linear Unit) activation in their feedforward layers, which provided a significant improvement over GELU (139 vs 212 MWh validation RMSE).
 
 ## Target Variable
 
@@ -58,7 +58,9 @@ Stream 5 (Infrastructure) bypasses cross-attention entirely — its flattened ou
 
 The concatenated vector (cross-attention output + infrastructure stream) passes through a 3-layer feedforward head: Linear(→256) → ReLU → Dropout(0.2) → Linear(→64) → ReLU → Dropout(0.1) → Linear(→1).
 
-**Activation functions:** The stream encoders and cross-attention blocks use SiLU (Sigmoid Linear Unit) activation in their feedforward layers, replacing the more common GELU. SiLU provided a measurable improvement over GELU (139 vs 212 MWh validation RMSE). The prediction head retains ReLU. The geographic stream dense layer also uses ReLU.
+## Activation Functions
+
+The stream encoders and cross-attention blocks use SiLU (Sigmoid Linear Unit) activation in their feedforward layers, replacing the more common GELU. SiLU is defined as f(x) = x × sigmoid(x), providing smooth gradients and self-gating behavior. SiLU provided a measurable improvement over GELU (139 vs 212 MWh validation RMSE). The prediction head retains ReLU. The geographic stream dense layer also uses ReLU.
 
 ---
 
