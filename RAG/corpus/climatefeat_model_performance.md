@@ -2,16 +2,16 @@
 
 ## Overview
 
-This document provides detailed error analysis for the ClimateFEAT transformer model and the LightGBM v4 baseline, including breakdowns by county population, demand level, season, day of week, and temperature regime. All metrics were computed from the March 3, 2026 training notebooks. The primary evaluation metric is population-weighted RMSE as a percentage of population-weighted mean demand, which accounts for the fact that large counties dominate total state demand.
+This document provides detailed error analysis for the ClimateFEAT transformer model and the LightGBM v4 baseline, including breakdowns by county population, demand level, season, day of week, and temperature regime. All metrics were computed from the March 15, 2026 training notebooks. The primary evaluation metric is population-weighted RMSE as a percentage of population-weighted mean demand, which accounts for the fact that large counties dominate total state demand.
 
 ## Headline Metrics
 
 ### ClimateFEAT Transformer
 
-- **Validation (2022):** RMSE 145 MWh, pop-weighted RMSE 12.4%
-- **Test (2023):** RMSE 184 MWh, pop-weighted RMSE 15.9%
-- **Best validation loss:** 0.0162 (MSE on log per-capita target)
-- **Training stopped at epoch 34** (patience 30, exhausted)
+- **Validation (2022):** RMSE 139 MWh, pop-weighted RMSE 12.0%
+- **Test (2023):** RMSE 172 MWh, pop-weighted RMSE 14.8%
+- **Best validation loss:** 0.0150 (MSE on log per-capita target)
+- **Training stopped at epoch 45** (patience 30, exhausted)
 - **Model parameters:** 493,657
 
 ### LightGBM v4
@@ -25,10 +25,10 @@ This document provides detailed error analysis for the ClimateFEAT transformer m
 
 | Metric | ClimateFEAT Transformer | LightGBM v4 |
 |--------|------------------------|-------------|
-| RMSE (MWh) | 184 | 199 |
-| Pop-weighted RMSE (%) | 15.9% | 17.4% |
+| RMSE (MWh) | 172 | 199 |
+| Pop-weighted RMSE (%) | 14.8% | 17.4% |
 
-The transformer outperforms LightGBM on the population-weighted metric by 1.5 percentage points on held-out 2023 data. Both models show a generalization gap between validation (2022) and test (2023), with LightGBM degrading more (12.0% → 17.4%) than the transformer (12.4% → 15.9%), suggesting the transformer's multi-stream attention architecture generalizes better to unseen years.
+The transformer outperforms LightGBM on the population-weighted metric by 2.6 percentage points on held-out 2023 data. Both models show a generalization gap between validation (2022) and test (2023), with LightGBM degrading more (12.0% → 17.4%) than the transformer (12.0% → 14.8%), suggesting the transformer's multi-stream attention architecture generalizes better to unseen years.
 
 ## Population-Weighted RMSE Definition
 
@@ -47,7 +47,7 @@ where `weighted_mean_demand = sum(pop_i × actual_i) / sum(pop_i)`. This ensures
 | Bottom 25% | ≤ 53 | 4 |
 | Bottom 50% | ≤ 205 | 11 |
 | Bottom 75% | ≤ 664 | 27 |
-| Full dataset | ≤ 16,651 | 145 |
+| Full dataset | ≤ 16,651 MWh | 139 |
 
 Error scales roughly proportionally with demand magnitude. The model achieves very low absolute error on small rural counties (RMSE 4 MWh for the bottom quartile) and the bulk of the aggregate RMSE comes from the largest counties. This is expected behavior for a log per-capita target: percentage errors are roughly uniform, but absolute MWh errors are much larger for counties with high total demand.
 
@@ -55,10 +55,10 @@ Error scales roughly proportionally with demand magnitude. The model achieves ve
 
 | Population Threshold | RMSE (MWh) |
 |---------------------|------------|
-| ≥ 47,350 (75th %ile) | 169 |
-| ≥ 185,183 (50th %ile) | 205 |
-| ≥ 697,581 (25th %ile) | 283 |
-| ≥ 9,852,298 (LA only) | 910 |
+| ≥ 47,350 (75th %ile) | 162 |
+| ≥ 185,183 (50th %ile) | 197 |
+| ≥ 697,581 (25th %ile) | 271 |
+| ≥ 9,852,298 (LA only) | 884 |
 
 Los Angeles County dominates the error budget. With a population of ~10 million, even small percentage errors translate to large absolute MWh residuals. The model's RMSE for LA alone is 910 MWh on validation, roughly 6x the statewide average.
 
@@ -68,16 +68,16 @@ Los Angeles County dominates the error budget. With a population of ~10 million,
 
 - **Mean actual demand:** Summer 12,434 MWh, other months lower
 - **Mean predicted demand:** Summer 12,964 MWh
-- **Summer RMSE:** 1,025 MWh
-- **Extreme days (>10k MWh):** 85 days; actual mean 12,664, predicted mean 13,063
+- **Summer RMSE:** 999 MWh
+- **Extreme days (>10k MWh):** 85 days; actual mean 12,664, predicted mean 13,106
 - **All other counties summer 2022:** actual 624 MWh, predicted 639 MWh, RMSE 83 MWh
 
 ### Test (2023)
 
 - **Mean actual:** 10,375 MWh
 - **Mean predicted:** 10,514 MWh
-- **RMSE:** 1,167 MWh
-- **Bias:** +138 MWh (slight over-prediction)
+- **RMSE:** 1,082 MWh
+- **Bias:** +89 MWh (slight over-prediction)
 
 ### LA Monthly Bias (Validation 2022, Transformer)
 
@@ -96,7 +96,7 @@ Los Angeles County dominates the error budget. With a population of ~10 million,
 | Nov | +326 | 918 |
 | Dec | -142 | 750 |
 
-The transformer tends to over-predict LA demand in winter (positive bias Jan–Mar) and under-predict in late summer (negative bias Jul, Sep). September shows the highest RMSE (1,333 MWh), which aligns with the September 2022 heat wave event. The worst single prediction was September 10, 2022 (actual 9,573 MWh, predicted 14,113 MWh, error 4,539 MWh), a day with elevated CDD75 (4.77) and peak temperatures around 309.6 K (~97°F pop-weighted).
+The transformer tends to over-predict LA demand in winter (positive bias Jan–Mar) and under-predict in late summer (negative bias Jul, Sep). September shows the highest RMSE (1,333 MWh), which aligns with the September 2022 heat wave event. The worst single prediction was September 10, 2022 (actual 9,573 MWh, predicted 14,328 MWh, error 4,755 MWh), a day with elevated CDD75 (4.77) and peak temperatures around 309.6 K (~97°F pop-weighted).
 
 ### LA Monthly Bias (Validation 2022, LightGBM v4)
 
@@ -121,18 +121,18 @@ LightGBM shows a persistent positive bias across most months (under-predicting i
 
 | Month | Avg Actual (MWh) | Avg Predicted (MWh) | Bias (MWh) | RMSE (MWh) |
 |-------|-----------------|--------------------|-----------|-----------| 
-| Jan | 648 | 621 | +27 | 205 |
-| Feb | 678 | 626 | +52 | 246 |
-| Mar | 688 | 636 | +52 | 247 |
-| Apr | 667 | 648 | +19 | 177 |
-| May | 689 | 678 | +10 | 143 |
-| Jun | 701 | 706 | -4 | 114 |
-| Jul | 821 | 854 | -33 | 159 |
-| Aug | 826 | 866 | -39 | 170 |
-| Sep | 742 | 785 | -43 | 175 |
-| Oct | 691 | 702 | -11 | 165 |
-| Nov | 641 | 633 | +8 | 168 |
-| Dec | 626 | 628 | -2 | 202 |
+| Jan | 648 | 623 | +26 | 191 |
+| Feb | 678 | 638 | +40 | 209 |
+| Mar | 688 | 636 | +53 | 234 |
+| Apr | 667 | 629 | +38 | 182 |
+| May | 689 | 653 | +36 | 159 |
+| Jun | 701 | 682 | +20 | 115 |
+| Jul | 821 | 850 | -29 | 147 |
+| Aug | 826 | 862 | -36 | 153 |
+| Sep | 742 | 764 | -22 | 148 |
+| Oct | 691 | 678 | +13 | 136 |
+| Nov | 641 | 631 | +9 | 163 |
+| Dec | 626 | 629 | -3 | 192 |
 
 The best months are June (RMSE 114) and May (RMSE 143). The largest RMSE months are February and March (246–247 MWh), likely driven by winter heating variability. Summer months show a slight negative bias (over-prediction), consistent with the model learning from 2018–2021 training data where summers averaged 801 MWh versus 2023's slightly cooler summer at 797 MWh.
 
@@ -140,13 +140,13 @@ The best months are June (RMSE 114) and May (RMSE 143). The largest RMSE months 
 
 | Day | RMSE (MWh) | Bias (MWh) |
 |-----|-----------|-----------|
-| Mon | 146 | +0 |
-| Tue | 124 | -2 |
-| Wed | 141 | +3 |
-| Thu | 143 | +4 |
-| Fri | 160 | -9 |
-| Sat | 166 | +10 |
-| Sun | 132 | +9 |
+| Mon | 143 | -2 |
+| Tue | 118 | -7 |
+| Wed | 132 | +0 |
+| Thu | 145 | +6 |
+| Fri | 151 | -5 |
+| Sat | 163 | -2 |
+| Sun | 117 | -5 |
 
 Weekend days (Fri–Sat) show slightly higher RMSE, which may reflect more variable residential-driven demand patterns on weekends. Bias is near zero across all days, indicating no systematic day-of-week miscalibration.
 
@@ -155,8 +155,8 @@ Weekend days (Fri–Sat) show slightly higher RMSE, which may reflect more varia
 | Regime | RMSE (MWh) |
 |--------|-----------|
 | Cold days (tmin < 10th percentile) | 27 |
-| Normal days | 154 |
-| Hot days (tmax > 90th percentile) | 143 |
+| Normal days | 147 |
+| Hot days (tmax > 90th percentile) | 147 |
 
 Cold days have very low RMSE because they tend to coincide with small-county, low-demand observations. Hot days (RMSE 143) are slightly better than normal days (RMSE 154), suggesting the heat wave stream and CDD75/DPD features are providing useful signal for extreme heat events.
 
@@ -187,7 +187,7 @@ All 20 worst predictions are for Los Angeles County. The largest errors fall int
 | Val (2022) | 703 | 1,526 | 828 | 640 |
 | Test (2023) | 702 | 1,519 | 797 | 650 |
 
-The validation and test distributions are very similar in aggregate (mean ~702 MWh, std ~1,520 MWh). The 2022 summer was slightly warmer than average (828 vs training average 801), while 2023 summer was slightly cooler (797). This modest distribution shift does not fully explain the 3.5 percentage point degradation from validation to test pop-weighted RMSE (12.4% → 15.9%), suggesting some temporal non-stationarity the model has not captured.
+The validation and test distributions are very similar in aggregate (mean ~702 MWh, std ~1,520 MWh). The 2022 summer was slightly warmer than average (828 vs training average 801), while 2023 summer was slightly cooler (797). This modest distribution shift does not fully explain the 3.5 percentage point degradation from validation to test pop-weighted RMSE (12.0% → 14.8%), suggesting some temporal non-stationarity the model has not captured.
 
 ## Training Configuration Summary
 
@@ -237,12 +237,12 @@ cuml_count, cuml_sq_foot, cuml_utility_cap, cuml_dc_load, bev, month, quarter, d
 
 3. **Winter under-prediction in LA:** Several of the worst errors are winter days where actual demand exceeded predictions by 1,600–2,000 MWh, suggesting the model underweights non-climate drivers of winter demand in large urban counties.
 
-4. **Val-to-test degradation:** Both models degrade from validation to test, but the gap is modest (3.5 pp for transformer, 5.4 pp for LightGBM). The transformer's better generalization may stem from its multi-stream attention architecture learning more transferable feature interactions than LightGBM's boosted splits.
+4. **Val-to-test degradation:** Both models degrade from validation to test, but the gap is modest (2.8 pp for transformer, 5.4 pp for LightGBM). The transformer's better generalization may stem from its multi-stream attention architecture learning more transferable feature interactions than LightGBM's boosted splits.
 
 5. **Day-of-week encoding:** The transformer notebook uses a non-standard `dow_map` derived from `df['day_of_week'].unique()` ordering, which is data-dependent and not guaranteed to be Monday=0. The saved dow_map was `{'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Saturday': 5, 'Friday': 6}`. This artifact was identified and addressed during inference pipeline development but represents a reproducibility concern if the pipeline is rerun on differently-ordered data.
 
 ## Source Notebooks
 
-- `Mar_3_txfrm_attn_9pm__4_.ipynb` — ClimateFEAT transformer training, evaluation, and error analysis
+- `siLU_MAR_15_txfrm_attn_730pm__1_.ipynb` — ClimateFEAT transformer training, evaluation, and error analysis
 - `Mar_3_1103pm_LightGBM.ipynb` — LightGBM v4 baseline training, SHAP analysis, and test evaluation
 - Both notebooks logged to MLflow with full artifacts for reproducibility

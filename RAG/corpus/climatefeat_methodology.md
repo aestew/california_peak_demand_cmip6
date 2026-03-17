@@ -58,6 +58,8 @@ Stream 5 (Infrastructure) bypasses cross-attention entirely — its flattened ou
 
 The concatenated vector (cross-attention output + infrastructure stream) passes through a 3-layer feedforward head: Linear(→256) → ReLU → Dropout(0.2) → Linear(→64) → ReLU → Dropout(0.1) → Linear(→1).
 
+**Activation functions:** The stream encoders and cross-attention blocks use SiLU (Sigmoid Linear Unit) activation in their feedforward layers, replacing the more common GELU. SiLU provided a measurable improvement over GELU (139 vs 212 MWh validation RMSE). The prediction head retains ReLU. The geographic stream dense layer also uses ReLU.
+
 ---
 
 ## Engineered Features
@@ -80,25 +82,25 @@ Train: 2018–2021. Validation: 2022. Test: 2023. No temporal leakage — all ro
 
 ## Training Configuration
 
-Optimizer: AdamW, learning rate 3e-4, weight decay 1e-3. Loss: MSE on log per-capita target. Scheduler: ReduceLROnPlateau, patience 5, factor 0.5. Gradient clipping: max norm 1.0. Early stopping: patience 30 epochs. Batch size: 512. Best model saved at epoch 34 with validation loss 0.0162. Training data: 127,078 samples across 74 features (after engineering). Model parameters: 493,657.
+Optimizer: AdamW, learning rate 3e-4, weight decay 1e-3. Loss: MSE on log per-capita target. Scheduler: ReduceLROnPlateau, patience 5, factor 0.5. Gradient clipping: max norm 1.0. Early stopping: patience 30 epochs. Batch size: 512. Best model saved at epoch 45 with validation loss 0.0150. Training data: 127,078 samples across 74 features (after engineering). Model parameters: 493,657.
 
 ---
 
 ## Model Performance
 
-### March 3, 2026 Notebook Results
+### March 15, 2026 Notebook Results
 
 **Validation (2022):**
-- RMSE: 145 MWh
-- Population-weighted RMSE: 12.4%
+- RMSE: 139 MWh
+- Population-weighted RMSE: 12.0%
 
 **Test (2023):**
-- RMSE: 184 MWh
-- Population-weighted RMSE: 15.9%
+- RMSE: 172 MWh
+- Population-weighted RMSE: 14.8%
 
 ### LightGBM v4 Baseline Comparison (Test 2023)
 
-- ClimateFEAT: RMSE 184 MWh, pop-weighted 15.9%
+- ClimateFEAT: RMSE 172 MWh, pop-weighted 14.8%
 - LightGBM v4: RMSE 199 MWh, pop-weighted 17.4%
 
 See `climatefeat_model_performance.md` for full error analysis by county, season, demand level, and temperature regime.
@@ -107,4 +109,4 @@ See `climatefeat_model_performance.md` for full error analysis by county, season
 
 ## Error Analysis Summary
 
-Error analysis shows the model struggles most with LA County (RMSE 1,167 MWh on test, mean bias +138 MWh) and exhibits slight weekend bias (Saturday RMSE 166 vs Tuesday RMSE 124). Error scales with county population as expected — bottom 75% of counties by demand have RMSE of just 27 MWh. The model stopped improving at epoch 34 after 30 patience epochs of no validation improvement.
+Error analysis shows the model struggles most with LA County (RMSE 1,082 MWh on test, mean bias +89 MWh) and exhibits slight weekend bias (Saturday RMSE 163 vs Tuesday RMSE 118). Error scales with county population as expected — bottom 75% of counties by demand have RMSE of just 27 MWh. The model stopped improving at epoch 45 after 30 patience epochs of no validation improvement.

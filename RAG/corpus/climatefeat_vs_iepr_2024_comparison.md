@@ -2,7 +2,7 @@
 
 ## Document Scope
 
-This document compares the ClimateFEAT transformer model against the adopted Final 2024 Integrated Energy Policy Report Update electricity demand forecast (CEC-100-2024-001-LCF, adopted January 21, 2025). All CEC-side references are to the adopted forecast only — not proposed 2025 IEPR improvements or future plans. All ClimateFEAT references are to the March 2026 model configuration documented in the project's methodology and performance notebooks.
+This document compares the ClimateFEAT transformer model against the adopted Final 2024 Integrated Energy Policy Report Update electricity demand forecast (CEC-100-2024-001-LCF, adopted January 21, 2025). All CEC-side references are to the adopted forecast only — not proposed 2025 IEPR improvements or future plans. All ClimateFEAT references are to the March 15, 2026 model configuration documented in the project's methodology and performance notebooks.
 
 These are complementary approaches, not competing ones. ClimateFEAT is a research tool designed to explore how nonstationary climate projections affect county-level demand. The CEC forecast is the state's official planning instrument with regulatory authority. The comparison identifies where ClimateFEAT's design choices address specific limitations acknowledged in the 2024 IEPR.
 
@@ -170,11 +170,11 @@ ClimateFEAT's ensemble approach generates a distribution of demand futures per c
 
 These are not directly comparable numbers because the models forecast different quantities at different scales. ClimateFEAT predicts daily county-level peak per-capita demand; the CEC forecast predicts annual consumption and hourly system load at the planning-area level. The numbers below characterize ClimateFEAT's accuracy on historical data.
 
-### ClimateFEAT Transformer (March 2026 notebooks)
+### ClimateFEAT Transformer (March 15, 2026 notebook)
 
-- Validation (2022): RMSE 145 MWh, pop-weighted RMSE 12.4%
-- Test (2023): RMSE 184 MWh, pop-weighted RMSE 15.9%
-- Outperforms LightGBM v4 baseline on test: 184 vs 199 MWh RMSE, 15.9% vs 17.4% pop-weighted
+- Validation (2022): RMSE 139 MWh, pop-weighted RMSE 12.0%
+- Test (2023): RMSE 172 MWh, pop-weighted RMSE 14.8%
+- Outperforms LightGBM v4 baseline on test: 172 vs 199 MWh RMSE, 14.8% vs 17.4% pop-weighted
 
 ### CEC 2024 IEPR
 
@@ -203,4 +203,4 @@ These are not directly comparable numbers because the models forecast different 
 ## Source Documents
 
 - CEC: Final 2024 Integrated Energy Policy Report Update. CEC-100-2024-001-LCF. Docket 24-IEPR-01, TN 266141.
-- ClimateFEAT: Mar_3_txfrm_attn_9pm__4_.ipynb (transformer training), Mar_3_1103pm_LightGBM.ipynb (baseline), and RAG corpus documents (climatefeat_methodology.md, climatefeat_feature_engineering.md, climatefeat_ssp_scenario_comparison.md, climatefeat_data_pipeline.md, climatefeat_model_performance.md, climatefeat_feature_dictionary.md).
+- ClimateFEAT: siLU_MAR_15_txfrm_attn_730pm__1_.ipynb (transformer training), Mar_3_1103pm_LightGBM.ipynb (baseline), and RAG corpus documents (climatefeat_methodology.md, climatefeat_feature_engineering.md, climatefeat_ssp_scenario_comparison.md, climatefeat_data_pipeline.md, climatefeat_model_performance.md, climatefeat_feature_dictionary.md).

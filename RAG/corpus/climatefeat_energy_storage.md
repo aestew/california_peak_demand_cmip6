@@ -116,7 +116,7 @@ Combined with firm generation (gas, hydro, nuclear, geothermal, bioenergy) from 
 | **Firm + Storage** | **72,041** |
 | Typical peak imports | ~5,000–10,000 |
 
-For comparison, ClimateFEAT projects CAISO peak demand reaching ~71,086 MW by 2040 under SSP3-7.0 (ensemble mean). The CEC's 2025 IEPR projects 66,318 MW (Planning + Known Loads) to 72,099 MW (Local Reliability) by 2040.
+For comparison, ClimateFEAT projects CAISO peak demand reaching ~69,965 MW by 2040 under SSP3-7.0 (ensemble mean). The CEC's 2025 IEPR projects 66,318 MW (Planning + Known Loads) to 72,099 MW (Local Reliability) by 2040.
 
 ## Source
 

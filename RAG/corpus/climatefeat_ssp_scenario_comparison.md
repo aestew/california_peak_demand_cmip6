@@ -81,9 +81,9 @@ Both SSP245 and SSP370 produce nearly identical results in the historical period
 
 ## Key Finding: Scenario Convergence Through 2040
 
-The SSP370 and SSP245 ensemble mean projections track nearly on top of each other from 2018 through 2040, both showing statewide average predicted peak demand (top 20% of days) rising from approximately 49,000 MWh to approximately 70,000 MWh. This represents roughly a 40% increase in peak electricity demand regardless of which emissions pathway materializes.
+The SSP370 and SSP245 ensemble mean projections track nearly on top of each other from 2018 through 2040, both showing statewide average predicted peak demand (top 20% of days) rising from approximately 54,000 MWh to approximately 74,000 MWh. This represents roughly a 40% increase in peak electricity demand regardless of which emissions pathway materializes.
 
-The ensemble spread within each scenario is substantial — individual model runs range from approximately 45,000 to 75,000 MWh by 2040 — but the two scenario means remain within each other's confidence bands throughout the projection period. The scenarios do not meaningfully diverge by 2040.
+The ensemble spread within each scenario is substantial — individual model runs range from approximately 49,000 to 80,000 MWh by 2040 — but the two scenario means remain within each other's confidence bands throughout the projection period. The scenarios do not meaningfully diverge by 2040.
 
 This convergence is the physically expected result. The cumulative emissions difference between SSP245 and SSP370 has not had sufficient time to produce meaningfully different regional temperatures by 2040. Global temperature divergence between these scenarios is small before mid-century, and California-specific temperature differences are even smaller at this timescale.
 

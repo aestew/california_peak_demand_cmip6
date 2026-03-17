@@ -73,10 +73,10 @@ Source: CEC Energy Storage System Survey, October 2025.
 
 | Year | CEC Planning (MW) | CEC Local Rel. (MW) | ClimateFEAT SSP3-7.0 (MW) | Firm Gen (MW) | + Storage (MW) | Margin (CEC Plan.) | Margin (ClimateFEAT) | Margin (Local Rel.) |
 |------|------------------:|--------------------:|--------------------------:|--------------:|---------------:|-------------------:|---------------------:|--------------------:|
-| 2025 | 46,487 | 46,487 | 56,033 | 49,754 | 72,041 | +25,554 | +16,008 | +25,554 |
-| 2030 | 55,843 | 58,361 | 61,267 | 49,754 | 72,041 | +16,198 | +10,774 | +13,680 |
-| 2035 | 61,898 | 67,672 | 66,471 | 49,754 | 72,041 | +10,143 | +5,570 | +4,369 |
-| 2040 | 66,318 | 72,099 | 71,086 | 49,754 | 72,041 | +5,723 | +955 | -58 |
+| 2025 | 46,487 | 46,487 | 57,491 | 49,754 | 72,041 | +25,554 | +14,550 | +25,554 |
+| 2030 | 55,843 | 58,361 | 61,926 | 49,754 | 72,041 | +16,198 | +10,115 | +13,680 |
+| 2035 | 61,898 | 67,672 | 66,288 | 49,754 | 72,041 | +10,143 | +5,753 | +4,369 |
+| 2040 | 66,318 | 72,099 | 69,965 | 49,754 | 72,041 | +5,723 | +2,076 | -58 |
 
 ### PG&E TAC
 
@@ -87,10 +87,10 @@ Source: CEC Energy Storage System Survey, October 2025.
 
 | Year | CEC Planning (MW) | ClimateFEAT (MW) | Firm Gen (MW) | + Storage (MW) | Margin (CEC) | Margin (CF) | Status |
 |------|------------------:|-----------------:|--------------:|---------------:|-------------:|------------:|--------|
-| 2025 | 20,718 | 23,414 | 29,118 | 34,599 | +13,881 | +11,185 | ✅ Surplus |
-| 2030 | 26,599 | 24,541 | 29,118 | 34,599 | +8,000 | +10,058 | ✅ Surplus |
-| 2035 | 30,180 | 26,675 | 29,118 | 34,599 | +4,419 | +7,924 | ✅ Surplus |
-| 2040 | 32,437 | 28,772 | 29,118 | 34,599 | +2,162 | +5,827 | ✅ Surplus |
+| 2025 | 20,718 | 23,081 | 29,118 | 34,599 | +13,881 | +11,518 | ✅ Surplus |
+| 2030 | 26,599 | 24,220 | 29,118 | 34,599 | +8,000 | +10,379 | ✅ Surplus |
+| 2035 | 30,180 | 26,135 | 29,118 | 34,599 | +4,419 | +8,464 | ✅ Surplus |
+| 2040 | 32,437 | 27,816 | 29,118 | 34,599 | +2,162 | +6,783 | ✅ Surplus |
 
 ### SCE TAC
 
@@ -101,10 +101,10 @@ Source: CEC Energy Storage System Survey, October 2025.
 
 | Year | CEC Planning (MW) | ClimateFEAT (MW) | Firm Gen (MW) | + Storage (MW) | Margin (CEC) | Margin (CF) | Status (CF) |
 |------|------------------:|-----------------:|--------------:|---------------:|-------------:|------------:|-------------|
-| 2025 | 23,617 | 28,629 | 17,673 | 30,682 | +7,065 | +2,053 | ✅ Surplus |
-| 2030 | 26,573 | 31,987 | 17,673 | 30,682 | +4,109 | -1,305 | ⚠️ DEFICIT |
-| 2035 | 28,453 | 34,731 | 17,673 | 30,682 | +2,229 | -4,049 | ⚠️ DEFICIT |
-| 2040 | 30,277 | 36,719 | 17,673 | 30,682 | +405 | -6,037 | ⚠️ DEFICIT |
+| 2025 | 23,617 | 29,180 | 17,673 | 30,682 | +7,065 | +1,502 | ✅ Surplus |
+| 2030 | 26,573 | 31,908 | 17,673 | 30,682 | +4,109 | -1,226 | ⚠️ DEFICIT |
+| 2035 | 28,453 | 33,984 | 17,673 | 30,682 | +2,229 | -3,302 | ⚠️ DEFICIT |
+| 2040 | 30,277 | 35,681 | 17,673 | 30,682 | +405 | -4,999 | ⚠️ DEFICIT |
 
 **Note**: ClimateFEAT projects significantly higher SCE TAC demand than CEC, driven by stronger climate signal in inland Southern California counties (Riverside, San Bernardino, Kern). Under ClimateFEAT projections, SCE enters firm+storage deficit by **~2029**.
 
@@ -117,10 +117,10 @@ Source: CEC Energy Storage System Survey, October 2025.
 
 | Year | CEC Planning (MW) | ClimateFEAT (MW) | Firm Gen (MW) | + Storage (MW) | Margin (CEC) | Margin (CF) | Status (CF) |
 |------|------------------:|-----------------:|--------------:|---------------:|-------------:|------------:|-------------|
-| 2025 | 4,236 | 5,004 | 2,963 | 6,760 | +2,524 | +1,756 | ✅ Surplus |
-| 2030 | 4,679 | 5,905 | 2,963 | 6,760 | +2,081 | +855 | ✅ Surplus |
-| 2035 | 5,034 | 6,420 | 2,963 | 6,760 | +1,726 | +340 | ✅ Surplus |
-| 2040 | 5,438 | 6,792 | 2,963 | 6,760 | +1,322 | -32 | ⚠️ DEFICIT |
+| 2025 | 4,236 | 5,230 | 2,963 | 6,760 | +2,524 | +1,530 | ✅ Surplus |
+| 2030 | 4,679 | 5,797 | 2,963 | 6,760 | +2,081 | +963 | ✅ Surplus |
+| 2035 | 5,034 | 6,169 | 2,963 | 6,760 | +1,726 | +591 | ✅ Surplus |
+| 2040 | 5,438 | 6,468 | 2,963 | 6,760 | +1,322 | +292 | ✅ Surplus |
 
 ## The Big Picture: When Does California Run Out?
 
@@ -136,17 +136,17 @@ Three views of CAISO capacity adequacy at peak hour:
 
 | Year | CEC Planning (MW) | CEC Local Rel. (MW) | ClimateFEAT SSP3-7.0 (MW) | Firm+Storage | Margin (Planning) | Margin (ClimateFEAT) | Margin (Local Rel.) |
 |------|------------------:|--------------------:|--------------------------:|-------------:|------------------:|---------------------:|--------------------:|
-| 2025 | 46,487 | 46,487 | 56,033 | 72,041 | +25,554 | +16,008 | +25,554 |
-| 2030 | 55,843 | 58,361 | 61,267 | 72,041 | +16,198 | +10,774 | +13,680 |
-| 2035 | 61,898 | 67,672 | 66,471 | 72,041 | +10,143 | +5,570 | +4,369 |
-| 2040 | 66,318 | 72,099 | 71,086 | 72,041 | +5,723 | +955 | -58 |
+| 2025 | 46,487 | 46,487 | 57,491 | 72,041 | +25,554 | +14,550 | +25,554 |
+| 2030 | 55,843 | 58,361 | 61,926 | 72,041 | +16,198 | +10,115 | +13,680 |
+| 2035 | 61,898 | 67,672 | 66,288 | 72,041 | +10,143 | +5,753 | +4,369 |
+| 2040 | 66,318 | 72,099 | 69,965 | 72,041 | +5,723 | +2,076 | -58 |
 
-ClimateFEAT SSP3-7.0 ensemble range at 2040: 67,843–74,221 MW (10th–90th percentile). Under the 90th percentile projection, firm+storage enters deficit by ~2037.
+ClimateFEAT SSP3-7.0 ensemble range at 2040: 67,539–72,675 MW (10th–90th percentile). Under the 90th percentile projection, firm+storage enters deficit by ~2037.
 
 ### Key Findings
 
 - **CEC Planning scenario**: Firm+Storage sufficient through 2040 (2040 margin: +5,723 MW)
-- **ClimateFEAT SSP3-7.0**: Firm+Storage barely sufficient at 2040 (+955 MW mean), **deficit under 90th percentile ensemble members**
+- **ClimateFEAT SSP3-7.0**: Firm+Storage margin at 2040: +2,076 MW mean, **deficit under 90th percentile ensemble members**
 - **CEC Local Reliability**: Firm+Storage deficit begins by **2040** (-58 MW)
 - **With imports (~7,500 MW avg)**: Total available ~79,541 MW — sufficient under all scenarios through 2040
 - **Without imports or storage growth**: Firm generation alone (49,754 MW) enters deficit by **2028** under ClimateFEAT projections

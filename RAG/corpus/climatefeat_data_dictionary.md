@@ -6,7 +6,7 @@ This document catalogs all raw and engineered features used in the ClimateFEAT p
 
 The two production models are **ClimateFEAT Transformer** (five-stream attention architecture) and **LightGBM v4** (gradient-boosted baseline). An earlier XGBoost model was also trained but is not the current baseline. The "Used in" columns below reflect the March 3, 2026 notebook configurations.
 
-Model performance from March 3, 2026 notebooks: ClimateFEAT Transformer validation RMSE 145 MWh / 12.4% pop-weighted, test RMSE 184 MWh / 15.9% pop-weighted. LightGBM v4 validation RMSE 141 MWh / 12.0% pop-weighted, test RMSE 199 MWh / 17.4% pop-weighted. See `climatefeat_model_performance.md` for full error analysis.
+Model performance from March 3, 2026 notebooks: ClimateFEAT Transformer validation RMSE 139 MWh / 12.0% pop-weighted, test RMSE 172 MWh / 14.8% pop-weighted. LightGBM v4 validation RMSE 141 MWh / 12.0% pop-weighted, test RMSE 199 MWh / 17.4% pop-weighted. See `climatefeat_model_performance.md` for full error analysis.
 
 ## Source Summary
 
