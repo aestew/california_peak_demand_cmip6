@@ -1905,7 +1905,7 @@
   },
   {
     "chunk_id": "climatefeat_methodology.md::Architecture Overview::272",
-    "text": "## Architecture Overview\n\nClimateFEAT is a multi-stream transformer model that predicts per-capita electricity demand across California's 58 counties using downscaled CMIP6 climate projections. The model uses five parallel attention streams with cross-attention fusion, each processing a distinct feature group through its own self-attention layers before combining them.",
+    "text": "## Architecture Overview\n\nClimateFEAT is a multi-stream transformer model that predicts per-capita electricity demand across California's 58 counties using downscaled CMIP6 climate projections. The model uses five parallel attention streams with cross-attention fusion, each processing a distinct feature group through its own self-attention layers before combining them. Stream encoders use SiLU (Sigmoid Linear Unit) activation in their feedforward layers, which provided a significant improvement over GELU (139 vs 212 MWh validation RMSE).",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "Architecture Overview"
@@ -1968,1098 +1968,1105 @@
   },
   {
     "chunk_id": "climatefeat_methodology.md::Prediction Head::281",
-    "text": "## Prediction Head\n\nThe concatenated vector (cross-attention output + infrastructure stream) passes through a 3-layer feedforward head: Linear(\u2192256) \u2192 ReLU \u2192 Dropout(0.2) \u2192 Linear(\u219264) \u2192 ReLU \u2192 Dropout(0.1) \u2192 Linear(\u21921).\n\n**Activation functions:** The stream encoders and cross-attention blocks use SiLU (Sigmoid Linear Unit) activation in their feedforward layers, replacing the more common GELU. SiLU provided a measurable improvement over GELU (139 vs 212 MWh validation RMSE). The prediction head retains ReLU. The geographic stream dense layer also uses ReLU.\n\n---",
+    "text": "## Prediction Head\n\nThe concatenated vector (cross-attention output + infrastructure stream) passes through a 3-layer feedforward head: Linear(\u2192256) \u2192 ReLU \u2192 Dropout(0.2) \u2192 Linear(\u219264) \u2192 ReLU \u2192 Dropout(0.1) \u2192 Linear(\u21921).",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "Prediction Head"
   },
   {
-    "chunk_id": "climatefeat_methodology.md::Engineered Features::282",
+    "chunk_id": "climatefeat_methodology.md::Activation Functions::282",
+    "text": "## Activation Functions\n\nThe stream encoders and cross-attention blocks use SiLU (Sigmoid Linear Unit) activation in their feedforward layers, replacing the more common GELU. SiLU is defined as f(x) = x \u00d7 sigmoid(x), providing smooth gradients and self-gating behavior. SiLU provided a measurable improvement over GELU (139 vs 212 MWh validation RMSE). The prediction head retains ReLU. The geographic stream dense layer also uses ReLU.\n\n---",
+    "source": "climatefeat_methodology.md",
+    "category": "climatefeat",
+    "section": "Activation Functions"
+  },
+  {
+    "chunk_id": "climatefeat_methodology.md::Engineered Features::283",
     "text": "## Engineered Features\n\n**Dew point depression (dpd_k):** Derived from specific humidity (spfh_peak_kgkg_pop) via conversion to vapor pressure, then to dew point temperature, then subtracted from tmax_k_pop. Large values indicate dry conditions, small values indicate high humidity and thermal discomfort. Clipped at zero.\n\n**Rolling aggregates:** cdd65_pop_roll5 (5-day sum of CDD65), hdd65_pop_roll5 (5-day sum of HDD65), tmax_k_pop_roll5_max (5-day max of daily max temperature), tmax_k_pop_roll7_mean (7-day mean of daily max temperature), dpd_k_roll5 (5-day mean dew point depression).\n\n**2017 baselines:** baseline_mw_per_capita_2017 (annual county-level per-capita demand from 2017) and baseline_mw_monthly_2017 (monthly variant). These anchor every stream to a county's structural consumption profile.\n\n**Per capita income:** Imputed using county median, falling back to global median where missing. Adjusted for inflation (per_cap_income).\n\n---",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "Engineered Features"
   },
   {
-    "chunk_id": "climatefeat_methodology.md::Data Split::283",
+    "chunk_id": "climatefeat_methodology.md::Data Split::284",
     "text": "## Data Split\n\nTrain: 2018\u20132021. Validation: 2022. Test: 2023. No temporal leakage \u2014 all rolling features computed within each split. Day of week encoded via integer mapping from string labels.\n\n---",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "Data Split"
   },
   {
-    "chunk_id": "climatefeat_methodology.md::Training Configuration::284",
+    "chunk_id": "climatefeat_methodology.md::Training Configuration::285",
     "text": "## Training Configuration\n\nOptimizer: AdamW, learning rate 3e-4, weight decay 1e-3. Loss: MSE on log per-capita target. Scheduler: ReduceLROnPlateau, patience 5, factor 0.5. Gradient clipping: max norm 1.0. Early stopping: patience 30 epochs. Batch size: 512. Best model saved at epoch 45 with validation loss 0.0150. Training data: 127,078 samples across 74 features (after engineering). Model parameters: 493,657.\n\n---",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "Training Configuration"
   },
   {
-    "chunk_id": "climatefeat_methodology.md::Model Performance::285",
+    "chunk_id": "climatefeat_methodology.md::Model Performance::286",
     "text": "## Model Performance",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "Model Performance"
   },
   {
-    "chunk_id": "climatefeat_methodology.md::March 15, 2026 Notebook Results::286",
+    "chunk_id": "climatefeat_methodology.md::March 15, 2026 Notebook Results::287",
     "text": "### March 15, 2026 Notebook Results\n\n**Validation (2022):**\n- RMSE: 139 MWh\n- Population-weighted RMSE: 12.0%\n\n**Test (2023):**\n- RMSE: 172 MWh\n- Population-weighted RMSE: 14.8%",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "March 15, 2026 Notebook Results"
   },
   {
-    "chunk_id": "climatefeat_methodology.md::LightGBM v4 Baseline Comparison (Test 2023)::287",
+    "chunk_id": "climatefeat_methodology.md::LightGBM v4 Baseline Comparison (Test 2023)::288",
     "text": "### LightGBM v4 Baseline Comparison (Test 2023)\n\n- ClimateFEAT: RMSE 172 MWh, pop-weighted 14.8%\n- LightGBM v4: RMSE 199 MWh, pop-weighted 17.4%\n\nSee `climatefeat_model_performance.md` for full error analysis by county, season, demand level, and temperature regime.\n\n---",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "LightGBM v4 Baseline Comparison (Test 2023)"
   },
   {
-    "chunk_id": "climatefeat_methodology.md::Error Analysis Summary::288",
+    "chunk_id": "climatefeat_methodology.md::Error Analysis Summary::289",
     "text": "## Error Analysis Summary\n\nError analysis shows the model struggles most with LA County (RMSE 1,082 MWh on test, mean bias +89 MWh) and exhibits slight weekend bias (Saturday RMSE 163 vs Tuesday RMSE 118). Error scales with county population as expected \u2014 bottom 75% of counties by demand have RMSE of just 27 MWh. The model stopped improving at epoch 45 after 30 patience epochs of no validation improvement.",
     "source": "climatefeat_methodology.md",
     "category": "climatefeat",
     "section": "Error Analysis Summary"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::ClimateFEAT CMIP6 Model Comparison::289",
+    "chunk_id": "climatefeat_model_comparison.md::ClimateFEAT CMIP6 Model Comparison::290",
     "text": "# ClimateFEAT CMIP6 Model Comparison",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT CMIP6 Model Comparison"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Overview::290",
+    "chunk_id": "climatefeat_model_comparison.md::Overview::291",
     "text": "## Overview\n\nComparison of individual CMIP6 model runs within each SSP scenario. Shows which models project higher or lower peak demand, the spread across runs within the same model, and how model choice affects the projection.",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Overview"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::SSP3-7.0 Model Comparison::291",
+    "chunk_id": "climatefeat_model_comparison.md::SSP3-7.0 Model Comparison::292",
     "text": "## SSP3-7.0 Model Comparison",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "SSP3-7.0 Model Comparison"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0)::292",
+    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0)::293",
     "text": "### Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0)",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0)::293",
+    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0)::294",
     "text": "Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0) | Rank | Model | Run | Peak Mean (MWh) | Peak Max (MWh) |\n|------|-------|-----|----------------:|---------------:|\n| 1 | mri-esm2-0 | r2i1p1f1 | 80,638 | 83,459 |\n| 2 | inm-cm5-0-ssp370 | r2i1p1f1 | 79,996 | 80,893 |\n| 3 | mri-esm2-0 | r1i1p1f1 | 79,624 | 81,957 |\n| 4 | inm-cm5-0-ssp370 | r3i1p1f1 | 79,494 | 81,749 |\n| 5 | ec-earth3-veg-ssp370 | r4i1p1f1 | 79,026 | 80,599 |\n| 6 | access-cm2-ssp370 | r1i1p1f1 | 78,397 | 78,974 |\n| 7 | inm-cm5-0 | r5i1p1f1 | 78,003 | 78,838 |\n| 8 | ec-earth3-veg-ssp370 | r2i1p1f1 | 77,848 | 78,939 |\n| 9 | ec-earth3-ssp370 | r1i1p1f1 | 77,498 | 79,278 |\n| 10 | mpi-esm1-2-hr | r1i1p1f1 | 77,319 | 79,212 |\n| 11 | mpi-esm1-2-hr | r5i1p1f1 | 77,251 | 78,837 |\n| 12 | mri-esm2-0 | r3i1p1f1 | 77,194 | 78,263 |\n| 13 | ec-earth3-veg-ssp370 | r3i1p1f1 | 77,127 | 77,620 |\n| 14 | inm-cm5-0-ssp370 | r1i1p1f1 | 76,698 | 77,698 |\n| 15 | mpi-esm1-2-hr | r4i1p1f1 | 76,667 | 79,838 |\n| 16 | ec-earth3-ssp370 | r4i1p1f1 | 75,877 | 77,456 |\n| 17 | mri-esm2-0 | r5i1p1f1 | 75,869 | 76,700 |\n| 18 | ec-earth3-veg-ssp370 | r1i1p1f1 | 75,814 | 76,842 |\n| 19 | mpi-esm1-2-hr | r3i1p1f1 | 75,767 | 76,988 |\n| 20 | mpi-esm1-2-hr | r2i1p1f1 | 75,548 | 75,997 |\n| 21 | mri-esm2-0 | r4i1p1f1 | 74,948 | 75,596 |\n| 22 | inm-cm5-0-ssp370 | r4i1p1f1 | 74,133 | 74,563 |\n| 23 | gfdl-esm4-ssp370 | r1i1p1f1 | 73,886 | 76,376 |\n| 24 | mpi-esm1-2-hr | r10i1p1f1 | 73,500 | 73,761 |",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Individual Run Rankings \u2014 2040 Top-1% Peak (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Model-Level Summary \u2014 2040 (SSP3-7.0)::294",
+    "chunk_id": "climatefeat_model_comparison.md::Model-Level Summary \u2014 2040 (SSP3-7.0)::295",
     "text": "### Model-Level Summary \u2014 2040 (SSP3-7.0)\n\n| Model | Runs | Mean Peak (MWh) | Min Run | Max Run | Spread (MWh) |\n|-------|-----:|----------------:|--------:|--------:|-------------:|\n| access-cm2-ssp370 | 1 | 78,397 | 78,397 | 78,397 | 0 |\n| inm-cm5-0 | 1 | 78,003 | 78,003 | 78,003 | 0 |\n| mri-esm2-0 | 5 | 77,655 | 74,948 | 80,638 | 5,690 |\n| inm-cm5-0-ssp370 | 4 | 77,580 | 74,133 | 79,996 | 5,864 |\n| ec-earth3-veg-ssp370 | 4 | 77,454 | 75,814 | 79,026 | 3,212 |\n| ec-earth3-ssp370 | 2 | 76,687 | 75,877 | 77,498 | 1,621 |\n| mpi-esm1-2-hr | 6 | 76,009 | 73,500 | 77,319 | 3,819 |\n| gfdl-esm4-ssp370 | 1 | 73,886 | 73,886 | 73,886 | 0 |",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Model-Level Summary \u2014 2040 (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Key Findings (SSP3-7.0)::295",
+    "chunk_id": "climatefeat_model_comparison.md::Key Findings (SSP3-7.0)::296",
     "text": "### Key Findings (SSP3-7.0)\n\n- **Hottest model**: access-cm2-ssp370 \u2014 78,397 MWh (+1.8% vs ensemble mean)\n- **Coolest model**: gfdl-esm4-ssp370 \u2014 73,886 MWh (-4.1% vs ensemble mean)\n- **Ensemble mean**: 77,005 MWh\n- **Full ensemble spread**: 7,137 MWh (+9.7%)\n- **Intra-model spread** (max): 5,864 MWh (inm-cm5-0-ssp370)",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Key Findings (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::SSP2-4.5 Model Comparison::296",
+    "chunk_id": "climatefeat_model_comparison.md::SSP2-4.5 Model Comparison::297",
     "text": "## SSP2-4.5 Model Comparison",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "SSP2-4.5 Model Comparison"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5)::297",
+    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5)::298",
     "text": "### Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5)",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5)::298",
+    "chunk_id": "climatefeat_model_comparison.md::Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5)::299",
     "text": "Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5) | Rank | Model | Run | Peak Mean (MWh) | Peak Max (MWh) |\n|------|-------|-----|----------------:|---------------:|\n| 1 | ec-earth3-veg_ssp245 | r3i1p1f1 | 81,008 | 81,597 |\n| 2 | ec-earth3-veg_ssp245 | r2i1p1f1 | 80,534 | 81,198 |\n| 3 | gfdl-esm4_ssp245 | r1i1p1f1 | 78,359 | 83,397 |\n| 4 | ec-earth3-veg_ssp245 | r4i1p1f1 | 77,689 | 78,222 |\n| 5 | cm2 | r1i1p1f1 | 77,607 | 79,287 |\n| 6 | ec-earth3_ssp245 | r2i1p1f1 | 77,025 | 77,778 |\n| 7 | inm-cm5-0_ssp245 | r1i1p1f1 | 76,645 | 76,799 |\n| 8 | ec-earth3-veg_ssp245 | r5i1p1f1 | 76,617 | 76,987 |\n| 9 | mpi-esm1-2-hr_ssp245 | r2i1p1f1 | 76,030 | 77,891 |\n| 10 | mri-esm2-0_ssp245 | r1i1p1f1 | 75,818 | 78,022 |\n| 11 | ec-earth3_ssp245 | r4i1p1f1 | 74,312 | 76,162 |\n| 12 | cnrm-esm2-1_ssp245 | r1i1p1f2 | 74,275 | 75,839 |\n| 13 | mpi-esm1-2-hr_ssp245 | r1i1p1f1 | 74,062 | 74,641 |\n| 14 | ec-earth3_ssp245 | r1i1p1f1 | 73,969 | 75,630 |\n| 15 | ec-earth3-veg_ssp245 | r1i1p1f1 | 73,492 | 74,574 |",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Individual Run Rankings \u2014 2040 Top-1% Peak (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Model-Level Summary \u2014 2040 (SSP2-4.5)::299",
+    "chunk_id": "climatefeat_model_comparison.md::Model-Level Summary \u2014 2040 (SSP2-4.5)::300",
     "text": "### Model-Level Summary \u2014 2040 (SSP2-4.5)\n\n| Model | Runs | Mean Peak (MWh) | Min Run | Max Run | Spread (MWh) |\n|-------|-----:|----------------:|--------:|--------:|-------------:|\n| gfdl-esm4_ssp245 | 1 | 78,359 | 78,359 | 78,359 | 0 |\n| ec-earth3-veg_ssp245 | 5 | 77,868 | 73,492 | 81,008 | 7,516 |\n| cm2 | 1 | 77,607 | 77,607 | 77,607 | 0 |\n| inm-cm5-0_ssp245 | 1 | 76,645 | 76,645 | 76,645 | 0 |\n| mri-esm2-0_ssp245 | 1 | 75,818 | 75,818 | 75,818 | 0 |\n| ec-earth3_ssp245 | 3 | 75,102 | 73,969 | 77,025 | 3,055 |\n| mpi-esm1-2-hr_ssp245 | 2 | 75,046 | 74,062 | 76,030 | 1,968 |\n| cnrm-esm2-1_ssp245 | 1 | 74,275 | 74,275 | 74,275 | 0 |",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Model-Level Summary \u2014 2040 (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Key Findings (SSP2-4.5)::300",
+    "chunk_id": "climatefeat_model_comparison.md::Key Findings (SSP2-4.5)::301",
     "text": "### Key Findings (SSP2-4.5)\n\n- **Hottest model**: gfdl-esm4_ssp245 \u2014 78,359 MWh (+2.4% vs ensemble mean)\n- **Coolest model**: cnrm-esm2-1_ssp245 \u2014 74,275 MWh (-2.9% vs ensemble mean)\n- **Ensemble mean**: 76,496 MWh\n- **Full ensemble spread**: 7,516 MWh (+10.2%)\n- **Intra-model spread** (max): 7,516 MWh (ec-earth3-veg_ssp245)",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Key Findings (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_model_comparison.md::Notes::301",
+    "chunk_id": "climatefeat_model_comparison.md::Notes::302",
     "text": "## Notes\n\n- Generated: March 2026\n- Peak defined as top 1% of daily statewide predicted demand per year\n- All values in MWh (daily statewide total)\n- Models with multiple runs show internal variability from different initial conditions",
     "source": "climatefeat_model_comparison.md",
     "category": "climatefeat",
     "section": "Notes"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::ClimateFEAT Model Performance::302",
+    "chunk_id": "climatefeat_model_performance.md::ClimateFEAT Model Performance::303",
     "text": "# ClimateFEAT Model Performance",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "ClimateFEAT Model Performance"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Overview::303",
+    "chunk_id": "climatefeat_model_performance.md::Overview::304",
     "text": "## Overview\n\nThis document provides detailed error analysis for the ClimateFEAT transformer model and the LightGBM v4 baseline, including breakdowns by county population, demand level, season, day of week, and temperature regime. All metrics were computed from the March 15, 2026 training notebooks. The primary evaluation metric is population-weighted RMSE as a percentage of population-weighted mean demand, which accounts for the fact that large counties dominate total state demand.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Overview"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Headline Metrics::304",
+    "chunk_id": "climatefeat_model_performance.md::Headline Metrics::305",
     "text": "## Headline Metrics",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Headline Metrics"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::ClimateFEAT Transformer::305",
+    "chunk_id": "climatefeat_model_performance.md::ClimateFEAT Transformer::306",
     "text": "### ClimateFEAT Transformer\n\n- **Validation (2022):** RMSE 139 MWh, pop-weighted RMSE 12.0%\n- **Test (2023):** RMSE 172 MWh, pop-weighted RMSE 14.8%\n- **Best validation loss:** 0.0150 (MSE on log per-capita target)\n- **Training stopped at epoch 45** (patience 30, exhausted)\n- **Model parameters:** 493,657",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "ClimateFEAT Transformer"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::LightGBM v4::306",
+    "chunk_id": "climatefeat_model_performance.md::LightGBM v4::307",
     "text": "### LightGBM v4\n\n- **Validation (2022):** RMSE 141 MWh, pop-weighted RMSE 12.0%\n- **Test (2023):** RMSE 199 MWh, pop-weighted RMSE 17.4%\n- **Best iteration:** 2,911 (of 5,000 max, early stopping patience 50)\n- **Validation RMSE in log space:** 0.1228",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "LightGBM v4"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Head-to-Head Comparison (Test 2023)::307",
+    "chunk_id": "climatefeat_model_performance.md::Head-to-Head Comparison (Test 2023)::308",
     "text": "### Head-to-Head Comparison (Test 2023)\n\n| Metric | ClimateFEAT Transformer | LightGBM v4 |\n|--------|------------------------|-------------|\n| RMSE (MWh) | 172 | 199 |\n| Pop-weighted RMSE (%) | 14.8% | 17.4% |\n\nThe transformer outperforms LightGBM on the population-weighted metric by 2.6 percentage points on held-out 2023 data. Both models show a generalization gap between validation (2022) and test (2023), with LightGBM degrading more (12.0% \u2192 17.4%) than the transformer (12.0% \u2192 14.8%), suggesting the transformer's multi-stream attention architecture generalizes better to unseen years.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Head-to-Head Comparison (Test 2023)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Population-Weighted RMSE Definition::308",
+    "chunk_id": "climatefeat_model_performance.md::Population-Weighted RMSE Definition::309",
     "text": "## Population-Weighted RMSE Definition\n\nThe primary metric is defined as:\n\n```\npop_weighted_rmse_pct = 100 \u00d7 sqrt(sum(pop_i \u00d7 (actual_i - pred_i)\u00b2) / sum(pop_i)) / weighted_mean_demand\n```\n\nwhere `weighted_mean_demand = sum(pop_i \u00d7 actual_i) / sum(pop_i)`. This ensures that prediction quality in Los Angeles (pop ~10M) matters more than prediction quality in Alpine County (pop ~1,100), reflecting the reality that grid planning is dominated by large load centers.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Population-Weighted RMSE Definition"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Error by Demand Level (Validation 2022, Transformer)::309",
+    "chunk_id": "climatefeat_model_performance.md::Error by Demand Level (Validation 2022, Transformer)::310",
     "text": "## Error by Demand Level (Validation 2022, Transformer)\n\n| Demand Quartile | Threshold (MWh) | RMSE (MWh) |\n|----------------|-----------------|------------|\n| Bottom 25% | \u2264 53 | 4 |\n| Bottom 50% | \u2264 205 | 11 |\n| Bottom 75% | \u2264 664 | 27 |\n| Full dataset | \u2264 16,651 MWh | 139 |\n\nError scales roughly proportionally with demand magnitude. The model achieves very low absolute error on small rural counties (RMSE 4 MWh for the bottom quartile) and the bulk of the aggregate RMSE comes from the largest counties. This is expected behavior for a log per-capita target: percentage errors are roughly uniform, but absolute MWh errors are much larger for counties with high total demand.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Error by Demand Level (Validation 2022, Transformer)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Error by County Population (Validation 2022, Transformer)::310",
+    "chunk_id": "climatefeat_model_performance.md::Error by County Population (Validation 2022, Transformer)::311",
     "text": "## Error by County Population (Validation 2022, Transformer)\n\n| Population Threshold | RMSE (MWh) |\n|---------------------|------------|\n| \u2265 47,350 (75th %ile) | 162 |\n| \u2265 185,183 (50th %ile) | 197 |\n| \u2265 697,581 (25th %ile) | 271 |\n| \u2265 9,852,298 (LA only) | 884 |\n\nLos Angeles County dominates the error budget. With a population of ~10 million, even small percentage errors translate to large absolute MWh residuals. The model's RMSE for LA alone is 910 MWh on validation, roughly 6x the statewide average.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Error by County Population (Validation 2022, Transformer)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Los Angeles County Deep Dive::311",
+    "chunk_id": "climatefeat_model_performance.md::Los Angeles County Deep Dive::312",
     "text": "## Los Angeles County Deep Dive",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Los Angeles County Deep Dive"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Validation (2022)::312",
+    "chunk_id": "climatefeat_model_performance.md::Validation (2022)::313",
     "text": "### Validation (2022)\n\n- **Mean actual demand:** Summer 12,434 MWh, other months lower\n- **Mean predicted demand:** Summer 12,964 MWh\n- **Summer RMSE:** 999 MWh\n- **Extreme days (>10k MWh):** 85 days; actual mean 12,664, predicted mean 13,106\n- **All other counties summer 2022:** actual 624 MWh, predicted 639 MWh, RMSE 83 MWh",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Validation (2022)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Test (2023)::313",
+    "chunk_id": "climatefeat_model_performance.md::Test (2023)::314",
     "text": "### Test (2023)\n\n- **Mean actual:** 10,375 MWh\n- **Mean predicted:** 10,514 MWh\n- **RMSE:** 1,082 MWh\n- **Bias:** +89 MWh (slight over-prediction)",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Test (2023)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::LA Monthly Bias (Validation 2022, Transformer)::314",
+    "chunk_id": "climatefeat_model_performance.md::LA Monthly Bias (Validation 2022, Transformer)::315",
     "text": "### LA Monthly Bias (Validation 2022, Transformer)\n\n| Month | Bias (MWh) | RMSE (MWh) |\n|-------|-----------|------------|\n| Jan | +775 | 1,064 |\n| Feb | +581 | 980 |\n| Mar | +405 | 1,077 |\n| Apr | +157 | 877 |\n| May | -67 | 861 |\n| Jun | +169 | 557 |\n| Jul | -754 | 1,017 |\n| Aug | -216 | 603 |\n| Sep | -623 | 1,333 |\n| Oct | -150 | 566 |\n| Nov | +326 | 918 |\n| Dec | -142 | 750 |\n\nThe transformer tends to over-predict LA demand in winter (positive bias Jan\u2013Mar) and under-predict in late summer (negative bias Jul, Sep). September shows the highest RMSE (1,333 MWh), which aligns with the September 2022 heat wave event. The worst single prediction was September 10, 2022 (actual 9,573 MWh, predicted 14,328 MWh, error 4,755 MWh), a day with elevated CDD75 (4.77) and peak temperatures around 309.6 K (~97\u00b0F pop-weighted).",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "LA Monthly Bias (Validation 2022, Transformer)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::LA Monthly Bias (Validation 2022, LightGBM v4)::315",
+    "chunk_id": "climatefeat_model_performance.md::LA Monthly Bias (Validation 2022, LightGBM v4)::316",
     "text": "### LA Monthly Bias (Validation 2022, LightGBM v4)\n\n| Month | Avg Actual | Avg Predicted | Bias (MWh) | RMSE (MWh) |\n|-------|-----------|--------------|-----------|------------|\n| Jan | 9,445 | 8,870 | +576 | 892 |\n| Feb | 9,488 | 8,975 | +513 | 980 |\n| Mar | 9,394 | 9,027 | +366 | 1,003 |\n| Apr | 9,670 | 9,136 | +534 | 1,025 |\n| May | 9,724 | 9,181 | +542 | 973 |\n| Jun | 11,550 | 11,087 | +462 | 680 |\n| Jul | 11,579 | 11,986 | -407 | 721 |\n| Aug | 13,028 | 13,276 | -248 | 473 |\n| Sep | 12,704 | 12,823 | -119 | 938 |\n| Oct | 10,325 | 9,625 | +699 | 1,070 |\n| Nov | 9,061 | 8,802 | +259 | 857 |\n| Dec | 8,729 | 8,894 | -164 | 789 |\n\nLightGBM shows a persistent positive bias across most months (under-predicting is less common), particularly in shoulder months (Apr\u2013May, Oct). Both models struggle with September heat events, though the transformer's September error is larger (1,333 vs 938 MWh RMSE).",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "LA Monthly Bias (Validation 2022, LightGBM v4)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Statewide Monthly Performance (Test 2023, Transformer)::316",
+    "chunk_id": "climatefeat_model_performance.md::Statewide Monthly Performance (Test 2023, Transformer)::317",
     "text": "## Statewide Monthly Performance (Test 2023, Transformer)\n\n| Month | Avg Actual (MWh) | Avg Predicted (MWh) | Bias (MWh) | RMSE (MWh) |\n|-------|-----------------|--------------------|-----------|-----------| \n| Jan | 648 | 623 | +26 | 191 |\n| Feb | 678 | 638 | +40 | 209 |\n| Mar | 688 | 636 | +53 | 234 |\n| Apr | 667 | 629 | +38 | 182 |\n| May | 689 | 653 | +36 | 159 |\n| Jun | 701 | 682 | +20 | 115 |\n| Jul | 821 | 850 | -29 | 147 |\n| Aug | 826 | 862 | -36 | 153 |\n| Sep | 742 | 764 | -22 | 148 |\n| Oct | 691 | 678 | +13 | 136 |\n| Nov | 641 | 631 | +9 | 163 |\n| Dec | 626 | 629 | -3 | 192 |\n\nThe best months are June (RMSE 114) and May (RMSE 143). The largest RMSE months are February and March (246\u2013247 MWh), likely driven by winter heating variability. Summer months show a slight negative bias (over-prediction), consistent with the model learning from 2018\u20132021 training data where summers averaged 801 MWh versus 2023's slightly cooler summer at 797 MWh.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Statewide Monthly Performance (Test 2023, Transformer)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Error by Day of Week (Validation 2022, Transformer)::317",
+    "chunk_id": "climatefeat_model_performance.md::Error by Day of Week (Validation 2022, Transformer)::318",
     "text": "## Error by Day of Week (Validation 2022, Transformer)\n\n| Day | RMSE (MWh) | Bias (MWh) |\n|-----|-----------|-----------|\n| Mon | 143 | -2 |\n| Tue | 118 | -7 |\n| Wed | 132 | +0 |\n| Thu | 145 | +6 |\n| Fri | 151 | -5 |\n| Sat | 163 | -2 |\n| Sun | 117 | -5 |\n\nWeekend days (Fri\u2013Sat) show slightly higher RMSE, which may reflect more variable residential-driven demand patterns on weekends. Bias is near zero across all days, indicating no systematic day-of-week miscalibration.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Error by Day of Week (Validation 2022, Transformer)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Error by Temperature Regime (Validation 2022, Transformer)::318",
+    "chunk_id": "climatefeat_model_performance.md::Error by Temperature Regime (Validation 2022, Transformer)::319",
     "text": "## Error by Temperature Regime (Validation 2022, Transformer)\n\n| Regime | RMSE (MWh) |\n|--------|-----------|\n| Cold days (tmin < 10th percentile) | 27 |\n| Normal days | 147 |\n| Hot days (tmax > 90th percentile) | 147 |\n\nCold days have very low RMSE because they tend to coincide with small-county, low-demand observations. Hot days (RMSE 143) are slightly better than normal days (RMSE 154), suggesting the heat wave stream and CDD75/DPD features are providing useful signal for extreme heat events.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Error by Temperature Regime (Validation 2022, Transformer)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::September Heat Wave Analysis (Validation 2022)::319",
+    "chunk_id": "climatefeat_model_performance.md::September Heat Wave Analysis (Validation 2022)::320",
     "text": "## September Heat Wave Analysis (Validation 2022)\n\nSeptember 2022 included a significant California heat event. Feature diagnostics for September:\n\n- **CDD75 (pop-weighted):** mean 2.0, max 13.5\n- **Dew point depression (dpd_k):** mean 19.13 K, min 1.70 K\n- **Rolling dpd_k (5-day):** mean 19.24 K\n- **Correlation with log demand:** CDD75 r=0.510, DPD r=0.457\n\nFor LA specifically in September: actual demand ranged 9,115\u201316,651 MWh, predictions ranged 11,006\u201316,587 MWh, with a mean bias of 623 MWh (over-prediction). The model captures the shape of heat-driven demand spikes but tends to over-respond to extreme CDD75 values, particularly on September 10 when the error reached 4,539 MWh.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "September Heat Wave Analysis (Validation 2022)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Worst 20 Predictions (Validation 2022, Transformer)::320",
+    "chunk_id": "climatefeat_model_performance.md::Worst 20 Predictions (Validation 2022, Transformer)::321",
     "text": "## Worst 20 Predictions (Validation 2022, Transformer)\n\nAll 20 worst predictions are for Los Angeles County. The largest errors fall into two categories:\n\n1. **Heat event over-prediction:** September 10 (error 4,539 MWh), July 2 (2,058 MWh), July 24 (1,973 MWh) \u2014 the model over-responds to high CDD75 on days when actual demand was lower than temperature alone would suggest (possible demand response, cloud cover, or weekend effects).\n\n2. **Cool-season under-prediction:** February 25 (error 2,003 MWh), January 28 (1,941 MWh), November 11 (1,636 MWh) \u2014 actual demand was higher than predicted on winter days, suggesting the model is missing some non-climate driver (possibly holiday effects, economic activity, or baseline load shifts).",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Worst 20 Predictions (Validation 2022, Transformer)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Validation vs Test Distribution Check::321",
+    "chunk_id": "climatefeat_model_performance.md::Validation vs Test Distribution Check::322",
     "text": "## Validation vs Test Distribution Check\n\n| Split | Mean (MWh) | Std (MWh) | Summer Avg | Winter Avg |\n|-------|-----------|----------|-----------|-----------|\n| Train (2018\u20132021) | \u2014 | \u2014 | 801 | \u2014 |\n| Val (2022) | 703 | 1,526 | 828 | 640 |\n| Test (2023) | 702 | 1,519 | 797 | 650 |\n\nThe validation and test distributions are very similar in aggregate (mean ~702 MWh, std ~1,520 MWh). The 2022 summer was slightly warmer than average (828 vs training average 801), while 2023 summer was slightly cooler (797). This modest distribution shift does not fully explain the 3.5 percentage point degradation from validation to test pop-weighted RMSE (12.0% \u2192 14.8%), suggesting some temporal non-stationarity the model has not captured.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Validation vs Test Distribution Check"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Training Configuration Summary::322",
+    "chunk_id": "climatefeat_model_performance.md::Training Configuration Summary::323",
     "text": "## Training Configuration Summary",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Training Configuration Summary"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::ClimateFEAT Transformer::323",
+    "chunk_id": "climatefeat_model_performance.md::ClimateFEAT Transformer::324",
     "text": "### ClimateFEAT Transformer\n\n- **Architecture:** Five parallel stream encoders (weather, rolling, geo, heat wave, infrastructure) with cross-attention fusion across four streams (infrastructure bypasses cross-attention and concatenates directly to the head)\n- **Embed dims:** 32 for weather/rolling/infrastructure streams, 64 for heat wave stream, 64 for cross-attention dimension\n- **County embedding:** Learned 8-dimensional embedding, prepended as a token to each attention stream\n- **Attention:** 8 heads per stream, 2 attention blocks per stream encoder\n- **Head:** 640-dim input \u2192 256 \u2192 64 \u2192 1 (with ReLU + dropout 0.2/0.1)\n- **Optimizer:** AdamW, lr=3e-4, weight_decay=1e-3\n- **Scheduler:** ReduceLROnPlateau (patience 5, factor 0.5)\n- **Loss:** MSE on log per-capita demand\n- **Batch size:** 512\n- **Early stopping:** Patience 30 on validation loss\n- **Training data:** 84,738 samples (2018\u20132021, 58 counties \u00d7 ~365 days \u00d7 4 years)",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "ClimateFEAT Transformer"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::LightGBM v4::324",
+    "chunk_id": "climatefeat_model_performance.md::LightGBM v4::325",
     "text": "### LightGBM v4\n\n- **Features:** 27 (plus county as categorical)\n- **Key hyperparameters:** n_estimators=5000, learning_rate=0.02, num_leaves=64, min_child_samples=50, subsample=0.8, colsample_bytree=0.8, reg_alpha=0.1, reg_lambda=1.0\n- **Target:** log per-capita daily max electricity demand\n- **Categorical features:** county, day_of_week (native LightGBM categorical handling)",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "LightGBM v4"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Feature Groups (Transformer Streams)::325",
+    "chunk_id": "climatefeat_model_performance.md::Feature Groups (Transformer Streams)::326",
     "text": "## Feature Groups (Transformer Streams)",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Feature Groups (Transformer Streams)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Weather-Time Stream (15 features)::326",
+    "chunk_id": "climatefeat_model_performance.md::Weather-Time Stream (15 features)::327",
     "text": "### Weather-Time Stream (15 features)\ntmax_k_pop, tmin_k_pop, trange_k, cdd65_pop, hdd65_pop, cdd75_pop, spfh_peak_kgkg_pop, wind_peak_ms_pop, dpd_k, month, quarter, day_of_week, is_holiday, baseline_mw_per_capita_2017, baseline_mw_monthly_2017",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Weather-Time Stream (15 features)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Rolling-Time Stream (11 features)::327",
+    "chunk_id": "climatefeat_model_performance.md::Rolling-Time Stream (11 features)::328",
     "text": "### Rolling-Time Stream (11 features)\ncdd65_pop_roll5, hdd65_pop_roll5, tmax_k_pop_roll5_max, tmax_k_pop_roll7_mean, dpd_k_roll5, month, quarter, day_of_week, is_holiday, baseline_mw_per_capita_2017, baseline_mw_monthly_2017",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Rolling-Time Stream (11 features)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Geo-Numeric Stream (4 features, dense path)::328",
+    "chunk_id": "climatefeat_model_performance.md::Geo-Numeric Stream (4 features, dense path)::329",
     "text": "### Geo-Numeric Stream (4 features, dense path)\ntotal_pop, per_cap_income, baseline_mw_per_capita_2017, baseline_mw_monthly_2017",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Geo-Numeric Stream (4 features, dense path)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Heat Wave Stream (5 features, 64-dim embed)::329",
+    "chunk_id": "climatefeat_model_performance.md::Heat Wave Stream (5 features, 64-dim embed)::330",
     "text": "### Heat Wave Stream (5 features, 64-dim embed)\nbaseline_mw_per_capita_2017, per_cap_income, cdd75_pop, dpd_k_roll5, cdd65_pop",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Heat Wave Stream (5 features, 64-dim embed)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Infrastructure-Time Stream (11 features, bypasses cross-attention)::330",
+    "chunk_id": "climatefeat_model_performance.md::Infrastructure-Time Stream (11 features, bypasses cross-attention)::331",
     "text": "### Infrastructure-Time Stream (11 features, bypasses cross-attention)\ncuml_count, cuml_sq_foot, cuml_utility_cap, cuml_dc_load, bev, month, quarter, day_of_week, is_holiday, baseline_mw_per_capita_2017, baseline_mw_monthly_2017",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Infrastructure-Time Stream (11 features, bypasses cross-attention)"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Known Limitations and Error Patterns::331",
+    "chunk_id": "climatefeat_model_performance.md::Known Limitations and Error Patterns::332",
     "text": "## Known Limitations and Error Patterns\n\n1. **LA dominance:** Los Angeles County accounts for all 20 worst predictions and the bulk of aggregate RMSE. Any improvement to LA predictions would substantially reduce the headline metric.\n\n2. **September heat events:** The model over-responds to extreme CDD75 in LA during September, producing the single largest error (4,539 MWh on Sep 10, 2022). This may reflect the model conflating population-weighted CDD with actual experienced cooling demand, which can be modulated by coastal vs inland microclimate differences within the county.\n\n3. **Winter under-prediction in LA:** Several of the worst errors are winter days where actual demand exceeded predictions by 1,600\u20132,000 MWh, suggesting the model underweights non-climate drivers of winter demand in large urban counties.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Known Limitations and Error Patterns"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Known Limitations and Error Patterns::332",
+    "chunk_id": "climatefeat_model_performance.md::Known Limitations and Error Patterns::333",
     "text": "demand exceeded predictions by 1,600\u20132,000 MWh, suggesting the model underweights non-climate drivers of winter demand in large urban counties. 4. **Val-to-test degradation:** Both models degrade from validation to test, but the gap is modest (2.8 pp for transformer, 5.4 pp for LightGBM). The transformer's better generalization may stem from its multi-stream attention architecture learning more transferable feature interactions than LightGBM's boosted splits.\n\n5. **Day-of-week encoding:** The transformer notebook uses a non-standard `dow_map` derived from `df['day_of_week'].unique()` ordering, which is data-dependent and not guaranteed to be Monday=0. The saved dow_map was `{'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Saturday': 5, 'Friday': 6}`. This artifact was identified and addressed during inference pipeline development but represents a reproducibility concern if the pipeline is rerun on differently-ordered data.",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Known Limitations and Error Patterns"
   },
   {
-    "chunk_id": "climatefeat_model_performance.md::Source Notebooks::333",
+    "chunk_id": "climatefeat_model_performance.md::Source Notebooks::334",
     "text": "## Source Notebooks\n\n- `siLU_MAR_15_txfrm_attn_730pm__1_.ipynb` \u2014 ClimateFEAT transformer training, evaluation, and error analysis\n- `Mar_3_1103pm_LightGBM.ipynb` \u2014 LightGBM v4 baseline training, SHAP analysis, and test evaluation\n- Both notebooks logged to MLflow with full artifacts for reproducibility",
     "source": "climatefeat_model_performance.md",
     "category": "climatefeat",
     "section": "Source Notebooks"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::ClimateFEAT Peak Demand Analysis::334",
+    "chunk_id": "climatefeat_peak_analysis.md::ClimateFEAT Peak Demand Analysis::335",
     "text": "# ClimateFEAT Peak Demand Analysis",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "ClimateFEAT Peak Demand Analysis"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Overview::335",
+    "chunk_id": "climatefeat_peak_analysis.md::Overview::336",
     "text": "## Overview\n\nAnalysis of when and where peak demand occurs across the projection period. Examines seasonal timing, county contributions to statewide peaks, and how peak patterns shift under climate change.",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Overview"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::SSP3-7.0 Peak Timing::336",
+    "chunk_id": "climatefeat_peak_analysis.md::SSP3-7.0 Peak Timing::337",
     "text": "## SSP3-7.0 Peak Timing",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "SSP3-7.0 Peak Timing"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Month of Annual Peak Day (SSP3-7.0)::337",
+    "chunk_id": "climatefeat_peak_analysis.md::Month of Annual Peak Day (SSP3-7.0)::338",
     "text": "### Month of Annual Peak Day (SSP3-7.0)\n\nFor each year, the month in which the highest single-day statewide demand occurs (averaged across ensemble members).\n\n\n**2020s peak month distribution (SSP3-7.0):**\n\n- Jun: 4/240 (2%)\n- Jul: 82/240 (34%)\n- Aug: 93/240 (39%)\n- Sep: 61/240 (25%)\n\n**2030s peak month distribution (SSP3-7.0):**\n\n- May: 1/240 (0%)\n- Jun: 11/240 (5%)\n- Jul: 88/240 (37%)\n- Aug: 91/240 (38%)\n- Sep: 45/240 (19%)\n- Oct: 4/240 (2%)",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Month of Annual Peak Day (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP3-7.0)::338",
+    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP3-7.0)::339",
     "text": "### County Contribution to Statewide Peak (SSP3-7.0)\n\nWhich counties contribute the most to statewide demand on peak days (top 1%).\n\n\n**2025 \u2014 Top 10 counties on peak days (SSP3-7.0):**\n\n| Rank | County | Share of Peak | Avg Peak Day MWh |\n|------|--------|-------------:|------------------:|\n| 1 | Los Angeles | 29.5% | 391,830 |\n| 2 | San Diego | 7.9% | 104,770 |\n| 3 | Orange | 7.4% | 98,237 |\n| 4 | Riverside | 6.1% | 80,989 |\n| 5 | San Bernardino | 5.6% | 74,749 |\n| 6 | Santa Clara | 4.4% | 59,174 |\n| 7 | Sacramento | 3.7% | 49,588 |\n| 8 | Alameda | 3.5% | 47,205 |\n| 9 | Contra Costa | 3.1% | 41,774 |\n| 10 | Kern | 3.0% | 40,372 |\n\n**2040 \u2014 Top 10 counties on peak days (SSP3-7.0):**",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "County Contribution to Statewide Peak (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP3-7.0)::339",
+    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP3-7.0)::340",
     "text": "8 | Alameda | 3.5% | 47,205 |\n| 9 | Contra Costa | 3.1% | 41,774 |\n| 10 | Kern | 3.0% | 40,372 |\n\n**2040 \u2014 Top 10 counties on peak days (SSP3-7.0):** | Rank | County | Share of Peak | Avg Peak Day MWh |\n|------|--------|-------------:|------------------:|\n| 1 | Los Angeles | 28.7% | 482,837 |\n| 2 | San Diego | 8.4% | 140,998 |\n| 3 | Orange | 7.5% | 126,638 |\n| 4 | Riverside | 6.8% | 114,953 |\n| 5 | San Bernardino | 6.1% | 102,393 |\n| 6 | Santa Clara | 4.7% | 78,197 |\n| 7 | Sacramento | 4.4% | 73,129 |\n| 8 | Alameda | 3.8% | 64,103 |\n| 9 | Contra Costa | 3.1% | 51,482 |\n| 10 | Kern | 3.0% | 50,058 |",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "County Contribution to Statewide Peak (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP3-7.0)::340",
+    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP3-7.0)::341",
     "text": "### Monthly Peak Demand Profile (SSP3-7.0)\n\nAverage of top-1% daily statewide demand by month, showing seasonal shape. Comparing 2025 vs 2040 to show how the seasonal pattern shifts.\n\n\n**2025 monthly profile (SSP3-7.0):**\n\n| Month | Mean Daily (MWh) | 99th Pct (MWh) |\n|-------|------------------:|----------------:|\n| Jan | 40,576 | 43,531 |\n| Feb | 40,693 | 45,475 |\n| Mar | 40,970 | 46,458 |\n| Apr | 42,218 | 50,357 |\n| May | 44,478 | 54,012 |\n| Jun | 48,739 | 58,400 |\n| Jul | 55,375 | 66,946 |\n| Aug | 54,809 | 64,136 |\n| Sep | 52,577 | 63,537 |\n| Oct | 46,093 | 59,182 |\n| Nov | 41,261 | 51,063 |\n| Dec | 40,233 | 43,128 |\n\n**2040 monthly profile (SSP3-7.0):**",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Monthly Peak Demand Profile (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP3-7.0)::341",
+    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP3-7.0)::342",
     "text": "|\n| Sep | 52,577 | 63,537 |\n| Oct | 46,093 | 59,182 |\n| Nov | 41,261 | 51,063 |\n| Dec | 40,233 | 43,128 |\n\n**2040 monthly profile (SSP3-7.0):** | Month | Mean Daily (MWh) | 99th Pct (MWh) |\n|-------|------------------:|----------------:|\n| Jan | 51,956 | 55,173 |\n| Feb | 51,904 | 56,339 |\n| Mar | 52,180 | 59,264 |\n| Apr | 54,082 | 64,931 |\n| May | 56,968 | 71,103 |\n| Jun | 62,084 | 75,813 |\n| Jul | 71,075 | 83,348 |\n| Aug | 70,597 | 82,942 |\n| Sep | 66,179 | 79,281 |\n| Oct | 56,138 | 70,017 |\n| Nov | 50,254 | 61,828 |\n| Dec | 49,372 | 53,045 |",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Monthly Peak Demand Profile (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::SSP2-4.5 Peak Timing::342",
+    "chunk_id": "climatefeat_peak_analysis.md::SSP2-4.5 Peak Timing::343",
     "text": "## SSP2-4.5 Peak Timing",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "SSP2-4.5 Peak Timing"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Month of Annual Peak Day (SSP2-4.5)::343",
+    "chunk_id": "climatefeat_peak_analysis.md::Month of Annual Peak Day (SSP2-4.5)::344",
     "text": "### Month of Annual Peak Day (SSP2-4.5)\n\nFor each year, the month in which the highest single-day statewide demand occurs (averaged across ensemble members).\n\n\n**2020s peak month distribution (SSP2-4.5):**\n\n- Jun: 3/150 (2%)\n- Jul: 48/150 (32%)\n- Aug: 59/150 (39%)\n- Sep: 39/150 (26%)\n- Oct: 1/150 (1%)\n\n**2030s peak month distribution (SSP2-4.5):**\n\n- May: 1/150 (1%)\n- Jun: 2/150 (1%)\n- Jul: 61/150 (41%)\n- Aug: 59/150 (39%)\n- Sep: 27/150 (18%)",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Month of Annual Peak Day (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP2-4.5)::344",
+    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP2-4.5)::345",
     "text": "### County Contribution to Statewide Peak (SSP2-4.5)\n\nWhich counties contribute the most to statewide demand on peak days (top 1%).\n\n\n**2025 \u2014 Top 10 counties on peak days (SSP2-4.5):**\n\n| Rank | County | Share of Peak | Avg Peak Day MWh |\n|------|--------|-------------:|------------------:|\n| 1 | Los Angeles | 29.4% | 243,321 |\n| 2 | San Diego | 7.9% | 65,556 |\n| 3 | Orange | 7.4% | 61,339 |\n| 4 | Riverside | 6.1% | 50,181 |\n| 5 | San Bernardino | 5.6% | 46,270 |\n| 6 | Santa Clara | 4.4% | 36,579 |\n| 7 | Sacramento | 3.7% | 30,504 |\n| 8 | Alameda | 3.6% | 29,505 |\n| 9 | Contra Costa | 3.2% | 26,054 |\n| 10 | Kern | 3.0% | 24,837 |\n\n**2040 \u2014 Top 10 counties on peak days (SSP2-4.5):**",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "County Contribution to Statewide Peak (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP2-4.5)::345",
+    "chunk_id": "climatefeat_peak_analysis.md::County Contribution to Statewide Peak (SSP2-4.5)::346",
     "text": "8 | Alameda | 3.6% | 29,505 |\n| 9 | Contra Costa | 3.2% | 26,054 |\n| 10 | Kern | 3.0% | 24,837 |\n\n**2040 \u2014 Top 10 counties on peak days (SSP2-4.5):** | Rank | County | Share of Peak | Avg Peak Day MWh |\n|------|--------|-------------:|------------------:|\n| 1 | Los Angeles | 28.7% | 305,837 |\n| 2 | San Diego | 8.4% | 89,334 |\n| 3 | Orange | 7.5% | 80,267 |\n| 4 | Riverside | 6.8% | 72,940 |\n| 5 | San Bernardino | 6.1% | 64,939 |\n| 6 | Santa Clara | 4.7% | 49,650 |\n| 7 | Sacramento | 4.4% | 46,680 |\n| 8 | Alameda | 3.8% | 40,703 |\n| 9 | Contra Costa | 3.1% | 32,754 |\n| 10 | Kern | 3.0% | 31,808 |",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "County Contribution to Statewide Peak (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP2-4.5)::346",
+    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP2-4.5)::347",
     "text": "### Monthly Peak Demand Profile (SSP2-4.5)\n\nAverage of top-1% daily statewide demand by month, showing seasonal shape. Comparing 2025 vs 2040 to show how the seasonal pattern shifts.\n\n\n**2025 monthly profile (SSP2-4.5):**\n\n| Month | Mean Daily (MWh) | 99th Pct (MWh) |\n|-------|------------------:|----------------:|\n| Jan | 40,461 | 43,175 |\n| Feb | 40,583 | 43,526 |\n| Mar | 41,068 | 48,838 |\n| Apr | 42,174 | 50,218 |\n| May | 44,199 | 53,944 |\n| Jun | 48,729 | 61,910 |\n| Jul | 54,882 | 62,338 |\n| Aug | 55,280 | 65,715 |\n| Sep | 52,804 | 64,291 |\n| Oct | 45,754 | 57,012 |\n| Nov | 41,145 | 50,870 |\n| Dec | 40,230 | 42,982 |\n\n**2040 monthly profile (SSP2-4.5):**",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Monthly Peak Demand Profile (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP2-4.5)::347",
+    "chunk_id": "climatefeat_peak_analysis.md::Monthly Peak Demand Profile (SSP2-4.5)::348",
     "text": "|\n| Sep | 52,804 | 64,291 |\n| Oct | 45,754 | 57,012 |\n| Nov | 41,145 | 50,870 |\n| Dec | 40,230 | 42,982 |\n\n**2040 monthly profile (SSP2-4.5):** | Month | Mean Daily (MWh) | 99th Pct (MWh) |\n|-------|------------------:|----------------:|\n| Jan | 52,075 | 55,416 |\n| Feb | 52,012 | 57,905 |\n| Mar | 52,486 | 61,822 |\n| Apr | 53,391 | 61,888 |\n| May | 56,066 | 67,212 |\n| Jun | 62,150 | 77,488 |\n| Jul | 70,523 | 82,958 |\n| Aug | 70,823 | 81,807 |\n| Sep | 65,897 | 81,409 |\n| Oct | 56,375 | 69,742 |\n| Nov | 50,056 | 57,073 |\n| Dec | 49,352 | 52,810 |",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Monthly Peak Demand Profile (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_peak_analysis.md::Notes::348",
+    "chunk_id": "climatefeat_peak_analysis.md::Notes::349",
     "text": "## Notes\n\n- Generated: March 2026\n- Peak days defined as top 1% of daily statewide predicted demand per year\n- County shares calculated from total predicted demand on peak days across all ensemble members\n- Seasonal profiles show ensemble-averaged values",
     "source": "climatefeat_peak_analysis.md",
     "category": "climatefeat",
     "section": "Notes"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::ClimateFEAT SSP Scenario Comparison::349",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::ClimateFEAT SSP Scenario Comparison::350",
     "text": "# ClimateFEAT SSP Scenario Comparison",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT SSP Scenario Comparison"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Overview::350",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Overview::351",
     "text": "## Overview\n\nClimateFEAT runs inference across two CMIP6 emissions scenarios to project future electricity demand under different climate trajectories. The comparison between SSP370 and SSP245 answers a key infrastructure planning question: does the emissions pathway matter for California electricity planning in the near term? The answer, supported by climate science and confirmed by our results, is that it does not \u2014 peak demand increases substantially regardless of scenario through 2040, and the infrastructure buildout needed is scenario-independent on this planning horizon.\n\n---",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Overview"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Shared Socioeconomic Pathways::351",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Shared Socioeconomic Pathways::352",
     "text": "## Shared Socioeconomic Pathways\n\nThe Shared Socioeconomic Pathways (SSPs) replaced the older Representative Concentration Pathways (RCPs) in the CMIP6 generation of climate models. SSPs provide a broader view of potential futures by incorporating societal changes, demographics, and economic factors alongside emissions trajectories.\n\n**SSP2-4.5 (\"Middle of the Road\"):** 4.5 watts per meter squared of radiative forcing by 2100. Emissions continue at present levels to mid-century and then decline. Projected outcome: approximately 2.7\u00b0C warmer at end of century. This is the scenario most commonly used in policy-aligned climate analysis.",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Shared Socioeconomic Pathways"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Shared Socioeconomic Pathways::352",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Shared Socioeconomic Pathways::353",
     "text": "decline. Projected outcome: approximately 2.7\u00b0C warmer at end of century. This is the scenario most commonly used in policy-aligned climate analysis. **SSP3-7.0 (\"Regional Rivalry\"):** 7.0 watts per meter squared of radiative forcing by 2100. Emissions roughly double from current levels by 2100 under conditions of nationalism, regional conflict, and slow economic development. Projected outcome: approximately 3.6\u00b0C warmer at end of century. This is the stress-test scenario relevant for utility infrastructure planners who need to account for 20-30 year asset lifespans.\n\nTogether, SSP245 and SSP370 bracket the range that most infrastructure planners consider actionable. SSP585 (8.5 W/m\u00b2, emissions doubling by 2050, 4.4\u00b0C warming) was excluded from ClimateFEAT due to limited model availability in LOCA2 for our ensemble members.\n\n---",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Shared Socioeconomic Pathways"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Sources of Uncertainty::353",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Sources of Uncertainty::354",
     "text": "## Sources of Uncertainty\n\nAccording to Cal-Adapt Analytics Engine guidance, which uncertainty source dominates depends on the projection timescale. Internal variability (unpredictable weather) dominates for periods less than 10 years. Model uncertainty (which GCM best represents reality) dominates between 10 and 40 years. Scenario uncertainty (what societies choose to do about emissions) only becomes the dominant factor for periods longer than 40 years.\n\nClimateFEAT's projection window is 2025\u20132040, placing it squarely in the model uncertainty regime. This means the choice of GCM matters more than the choice of SSP at this timescale, which is why the multi-model ensemble approach is critical and why the SSP245 vs SSP370 convergence in our results is physically expected.\n\n---",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Sources of Uncertainty"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Downscaling: LOCA2::354",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Downscaling: LOCA2::355",
     "text": "## Downscaling: LOCA2\n\nClimateFEAT uses LOCA2 (Localized Constructed Analogs, version 2) statistically downscaled CMIP6 data, developed by David W. Pierce at Scripps Institution of Oceanography. LOCA2 at 6 km resolution for the North American domain was completed in late 2022 and is one of the downscaled datasets used to inform the Fifth National Climate Assessment (NCA5). The generation of California-specific high-resolution data was supported by the California Energy Commission (EPC-20-006).",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Downscaling: LOCA2"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::LOCA2 Specifications::355",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::LOCA2 Specifications::356",
     "text": "### LOCA2 Specifications\n\n6 km spatial resolution, daily Tmin/Tmax/Precipitation, coverage from 1950 through 2100. SSP245, SSP370, and SSP585 are included where the original GCM ran those scenarios. The full LOCA2 dataset spans 27 models, 99 model-experiment combinations, and 329 individual ensemble members totaling 26,026 model-years.\n\nClimateFEAT accesses LOCA2 data via the cadcat S3 bucket (s3://cadcat/loca2/ucsd/) which hosts the California-specific subset.\n\n---",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "LOCA2 Specifications"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::CMIP6 Ensemble Composition::356",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::CMIP6 Ensemble Composition::357",
     "text": "## CMIP6 Ensemble Composition\n\nBoth scenarios use the same ensemble of 7 CMIP6 global climate models with 24-25 total runs: ACCESS-CM2 (1 member), EC-Earth3 (2 members), EC-Earth3-Veg (4 members), GFDL-ESM4 (1 member), INM-CM5-0 (5 members), MPI-ESM1-2-HR (6 members), and MRI-ESM2-0 (5 members). Models and members were selected based on availability of both SSP245 and SSP370 in LOCA2 with the required climate variables. Using multiple models captures structural uncertainty \u2014 different GCMs represent different physical assumptions about atmospheric processes, ocean circulation, and feedback mechanisms.",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "CMIP6 Ensemble Composition"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::SSP370 Ensemble (24 runs, 7 models)::357",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::SSP370 Ensemble (24 runs, 7 models)::358",
     "text": "### SSP370 Ensemble (24 runs, 7 models)\n\n- ACCESS-CM2: r1i1p1f1 (1 member)\n- EC-Earth3: r1i1p1f1, r4i1p1f1 (2 members)\n- EC-Earth3-Veg: r1i1p1f1, r2i1p1f1, r3i1p1f1, r4i1p1f1 (4 members)\n- GFDL-ESM4: r1i1p1f1 (1 member)\n- INM-CM5-0: r1i1p1f1, r2i1p1f1, r3i1p1f1, r4i1p1f1, r5i1p1f1 (5 members)\n- MPI-ESM1-2-HR: r1i1p1f1, r2i1p1f1, r3i1p1f1, r4i1p1f1, r5i1p1f1, r10i1p1f1 (6 members)\n- MRI-ESM2-0: r1i1p1f1, r2i1p1f1, r3i1p1f1, r4i1p1f1, r5i1p1f1 (5 members)\n\nTotal SSP370 rows: 11,694,192 (58 counties \u00d7 daily \u00d7 24 runs \u00d7 2018\u20132040).",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "SSP370 Ensemble (24 runs, 7 models)"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::SSP245 Ensemble (15 runs, 7 models)::358",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::SSP245 Ensemble (15 runs, 7 models)::359",
     "text": "### SSP245 Ensemble (15 runs, 7 models)\n\n- ACCESS-CM2: r1i1p1f1 (1 member)\n- CNRM-ESM2-1: r1i1p1f2 (1 member)\n- EC-Earth3: r1i1p1f1, r2i1p1f1, r4i1p1f1 (3 members)\n- EC-Earth3-Veg: r1i1p1f1, r2i1p1f1, r3i1p1f1, r4i1p1f1, r5i1p1f1 (5 members)\n- GFDL-ESM4: r1i1p1f1 (1 member)\n- INM-CM5-0: r1i1p1f1 (1 member)\n- MPI-ESM1-2-HR: r1i1p1f1, r2i1p1f1 (2 members)\n- MRI-ESM2-0: r1i1p1f1 (1 member)\n\nTotal SSP245 rows: 7,308,870 (58 counties \u00d7 daily \u00d7 15 runs \u00d7 2018\u20132040).",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "SSP245 Ensemble (15 runs, 7 models)"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Ensemble Asymmetry::359",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Ensemble Asymmetry::360",
     "text": "### Ensemble Asymmetry\n\nThe SSP245 ensemble is smaller because fewer GCMs ran SSP245 with multiple ensemble members in LOCA2. Six models overlap between scenarios (ACCESS-CM2, EC-Earth3, EC-Earth3-Veg, GFDL-ESM4, INM-CM5-0, MPI-ESM1-2-HR, MRI-ESM2-0). SSP245 adds CNRM-ESM2-1 which was not available for SSP370. The asymmetry in ensemble size means SSP370 has better-characterized internal variability (more members per model), while SSP245 has slightly broader model diversity. For the scenario comparison, results are aggregated at the ensemble-mean level so the different sample sizes do not bias the comparison.\n\n---",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Ensemble Asymmetry"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Historical Overlap Validation (2018\u20132023)::360",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Historical Overlap Validation (2018\u20132023)::361",
     "text": "## Historical Overlap Validation (2018\u20132023)\n\nBoth SSP245 and SSP370 produce nearly identical results in the historical period, as expected. The two emissions pathways have not yet diverged in cumulative atmospheric greenhouse gas concentrations during this period. Both scenarios show a consistent ~4-5\u00b0F warm bias on top-5% peak temperature days compared to URMA observations, with nearly identical patterns year over year. This warm bias is structural to the CMIP6 models over California and is scenario-independent \u2014 confirming that any performance differences between scenarios in the projection period are driven by genuine climate divergence rather than artifacts.\n\n---",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Historical Overlap Validation (2018\u20132023)"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Key Finding: Scenario Convergence Through 2040::361",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Key Finding: Scenario Convergence Through 2040::362",
     "text": "## Key Finding: Scenario Convergence Through 2040\n\nThe SSP370 and SSP245 ensemble mean projections track nearly on top of each other from 2018 through 2040, both showing statewide average predicted peak demand (top 20% of days) rising from approximately 54,000 MWh to approximately 74,000 MWh. This represents roughly a 40% increase in peak electricity demand regardless of which emissions pathway materializes.\n\nThe ensemble spread within each scenario is substantial \u2014 individual model runs range from approximately 49,000 to 80,000 MWh by 2040 \u2014 but the two scenario means remain within each other's confidence bands throughout the projection period. The scenarios do not meaningfully diverge by 2040.",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Key Finding: Scenario Convergence Through 2040"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Key Finding: Scenario Convergence Through 2040::362",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Key Finding: Scenario Convergence Through 2040::363",
     "text": "two scenario means remain within each other's confidence bands throughout the projection period. The scenarios do not meaningfully diverge by 2040. This convergence is the physically expected result. The cumulative emissions difference between SSP245 and SSP370 has not had sufficient time to produce meaningfully different regional temperatures by 2040. Global temperature divergence between these scenarios is small before mid-century, and California-specific temperature differences are even smaller at this timescale.",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Key Finding: Scenario Convergence Through 2040"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Policy Implication::363",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Policy Implication::364",
     "text": "### Policy Implication\n\nCalifornia faces substantially higher peak electricity demand by 2040 under any plausible emissions scenario. The infrastructure investment needed is scenario-independent in the near term. This removes the rationale for delaying grid buildout while waiting to see which emissions pathway unfolds. To observe meaningful scenario divergence, projections would need to extend to 2060 or beyond, where scenario uncertainty becomes the dominant factor.\n\n---",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Policy Implication"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Citations and References::364",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Citations and References::365",
     "text": "## Citations and References",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Citations and References"
   },
   {
-    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Citations and References::365",
+    "chunk_id": "climatefeat_ssp_scenario_comparison.md::Citations and References::366",
     "text": "Citations and References - **LOCA2 downscaling:** Pierce, D.W., Scripps Institution of Oceanography, LOCA version 2 for North America. https://loca.ucsd.edu/loca-version-2-for-north-america-ca-jan-2023/. Full bibliography: https://loca.ucsd.edu/loca-bibliography/\n- **SSP scenario definitions and California climate guidance:** Cal-Adapt Analytics Engine, Guidance on Climate Projections and Models. https://analytics.cal-adapt.org/guidance/about_climate_projections_and_models\n- **SSP framework:** Carbon Brief explainer on Shared Socioeconomic Pathways. https://www.carbonbrief.org/explainer-how-shared-socioeconomic-pathways-explore-future-climate-change/\n- **Model selection for California's Fifth Climate Change Assessment:** Krantz et al. 2021. https://www.energy.ca.gov/media/7264\n- **CEC data center forecasts:** 2024 Final Data Center Forecast (https://www.energy.ca.gov/sites/default/files/2025-03/Data_Center_Forecast_Final_ada.pdf) and 2025 IEPR Preliminary Data Center Forecast (https://www.energy.ca.gov/sites/default/files/2025-11/2025_IEPR_Preliminary_Data_Center_Forecast_ada.pdf)",
     "source": "climatefeat_ssp_scenario_comparison.md",
     "category": "climatefeat",
     "section": "Citations and References"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::ClimateFEAT Statewide Peak Demand Projections::366",
+    "chunk_id": "climatefeat_statewide_projections.md::ClimateFEAT Statewide Peak Demand Projections::367",
     "text": "# ClimateFEAT Statewide Peak Demand Projections",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "ClimateFEAT Statewide Peak Demand Projections"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::Overview::367",
+    "chunk_id": "climatefeat_statewide_projections.md::Overview::368",
     "text": "## Overview\n\nStatewide projections from the ClimateFEAT transformer model across CMIP6 climate ensembles under two SSP scenarios. Peak demand is defined as the top 1% of predicted daily statewide demand (MWh) per year. Values represent the mean of top-1% days, averaged across ensemble members, with 10th and 90th percentile bounds showing ensemble spread.",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "Overview"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::SSP3-7.0 Statewide Annual Peak Demand::368",
+    "chunk_id": "climatefeat_statewide_projections.md::SSP3-7.0 Statewide Annual Peak Demand::369",
     "text": "## SSP3-7.0 Statewide Annual Peak Demand",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "SSP3-7.0 Statewide Annual Peak Demand"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::SSP3-7.0 Statewide Annual Peak Demand::369",
+    "chunk_id": "climatefeat_statewide_projections.md::SSP3-7.0 Statewide Annual Peak Demand::370",
     "text": "SSP3-7.0 Statewide Annual Peak Demand | Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct | Min | Max |\n|------|--------------------:|--------:|---------:|----:|----:|\n| 2018 | 56,181 | 54,460 | 58,072 | 53,930 | 60,294 |\n| 2019 | 55,729 | 53,469 | 57,845 | 53,003 | 58,462 |\n| 2020 | 55,840 | 54,007 | 57,389 | 53,118 | 57,676 |\n| 2021 | 56,591 | 54,805 | 59,168 | 52,996 | 60,384 |\n| 2022 | 55,779 | 54,471 | 57,112 | 52,536 | 58,397 |\n| 2023 | 56,947 | 55,351 | 58,549 | 54,742 | 58,917 |\n| 2024 | 61,364 | 59,263 | 63,634 | 56,767 | 64,608 |\n| 2025 | 63,012 | 60,855 | 65,666 | 60,101 | 68,058 |\n| 2026 | 63,803 | 61,920 | 65,671 | 61,599 | 67,539 |\n| 2027 | 65,123 | 62,883 | 66,942 | 62,168 | 68,013 |\n| 2028 | 66,203 | 64,623 | 67,348 | 63,504 | 68,846 |\n| 2029 | 67,113 | 65,646 | 68,998 | 63,603 | 70,116 |\n| 2030 | 68,019 | 67,058 | 69,444 | 66,181 | 70,285 |\n| 2031 | 69,640 | 67,624 | 71,117 | 66,763 | 71,971 |\n| 2032 | 68,986 | 67,283 | 70,316 | 66,744 | 72,212 |\n| 2033 | 70,681 | 68,275 | 73,369 | 67,290 | 74,183 |\n| 2034 | 72,264 | 69,766 | 75,315 | 69,225 | 77,519 |\n| 2035 | 72,758 | 70,901 | 75,146 | 68,572 | 76,485 |\n| 2036 | 73,542 | 71,357 | 76,312 | 69,380 | 77,354 |\n| 2037 | 73,811 | 71,531 | 75,972 | 70,217 | 77,049 |\n| 2038 | 74,615 | 72,681 | 77,470 | 72,537 | 78,261 |\n| 2039 | 76,736 | 75,379 | 78,145 | 73,555 | 80,402 |\n| 2040 | 77,005 | 74,377 | 79,585 | 73,500 | 80,638 |",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "SSP3-7.0 Statewide Annual Peak Demand"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::Growth Summary (SSP3-7.0)::370",
+    "chunk_id": "climatefeat_statewide_projections.md::Growth Summary (SSP3-7.0)::371",
     "text": "### Growth Summary (SSP3-7.0)\n\n- 2025 \u2192 2030: +7.9%\n- 2030 \u2192 2035: +7.0%\n- 2035 \u2192 2040: +5.8%\n- 2025 \u2192 2040: +22.2%",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "Growth Summary (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::SSP2-4.5 Statewide Annual Peak Demand::371",
+    "chunk_id": "climatefeat_statewide_projections.md::SSP2-4.5 Statewide Annual Peak Demand::372",
     "text": "## SSP2-4.5 Statewide Annual Peak Demand",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "SSP2-4.5 Statewide Annual Peak Demand"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::SSP2-4.5 Statewide Annual Peak Demand::372",
+    "chunk_id": "climatefeat_statewide_projections.md::SSP2-4.5 Statewide Annual Peak Demand::373",
     "text": "SSP2-4.5 Statewide Annual Peak Demand | Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct | Min | Max |\n|------|--------------------:|--------:|---------:|----:|----:|\n| 2018 | 55,864 | 54,224 | 57,059 | 52,907 | 57,856 |\n| 2019 | 55,814 | 54,412 | 57,328 | 54,221 | 57,510 |\n| 2020 | 56,511 | 55,040 | 58,340 | 54,021 | 58,739 |\n| 2021 | 56,270 | 54,425 | 58,192 | 52,885 | 60,173 |\n| 2022 | 56,321 | 54,267 | 58,044 | 52,734 | 59,528 |\n| 2023 | 56,606 | 54,431 | 59,242 | 53,685 | 59,989 |\n| 2024 | 62,132 | 60,780 | 64,655 | 59,305 | 65,372 |\n| 2025 | 62,895 | 60,139 | 65,493 | 59,784 | 67,821 |\n| 2026 | 63,942 | 61,916 | 65,674 | 61,454 | 67,618 |\n| 2027 | 65,028 | 64,414 | 65,586 | 63,037 | 67,068 |\n| 2028 | 65,759 | 63,363 | 68,065 | 62,255 | 69,396 |\n| 2029 | 66,758 | 64,573 | 68,026 | 62,839 | 71,995 |\n| 2030 | 68,401 | 66,499 | 70,204 | 66,119 | 70,655 |\n| 2031 | 69,260 | 67,528 | 70,937 | 66,500 | 76,581 |\n| 2032 | 69,873 | 66,554 | 72,221 | 65,010 | 73,850 |\n| 2033 | 71,836 | 69,679 | 73,980 | 69,566 | 75,098 |\n| 2034 | 72,062 | 69,321 | 75,488 | 68,834 | 76,268 |\n| 2035 | 72,503 | 70,756 | 74,430 | 69,380 | 75,737 |\n| 2036 | 73,592 | 71,567 | 75,711 | 69,558 | 76,439 |\n| 2037 | 73,635 | 71,674 | 75,667 | 70,988 | 76,236 |\n| 2038 | 75,643 | 73,676 | 77,805 | 72,977 | 77,983 |\n| 2039 | 76,734 | 74,823 | 78,543 | 72,624 | 78,754 |\n| 2040 | 76,496 | 74,006 | 79,664 | 73,492 | 81,008 |",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "SSP2-4.5 Statewide Annual Peak Demand"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::Growth Summary (SSP2-4.5)::373",
+    "chunk_id": "climatefeat_statewide_projections.md::Growth Summary (SSP2-4.5)::374",
     "text": "### Growth Summary (SSP2-4.5)\n\n- 2025 \u2192 2030: +8.8%\n- 2030 \u2192 2035: +6.0%\n- 2035 \u2192 2040: +5.5%\n- 2025 \u2192 2040: +21.6%",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "Growth Summary (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::Scenario Comparison::374",
+    "chunk_id": "climatefeat_statewide_projections.md::Scenario Comparison::375",
     "text": "## Scenario Comparison\n\nMean of top-1% statewide peak demand (MWh) by year, ensemble mean.",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "Scenario Comparison"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::Scenario Comparison::375",
+    "chunk_id": "climatefeat_statewide_projections.md::Scenario Comparison::376",
     "text": "Scenario Comparison\n\nMean of top-1% statewide peak demand (MWh) by year, ensemble mean. | Year | SSP3-7.0 (MWh) | SSP2-4.5 (MWh) | Difference | Diff % |\n|------|---------------:|---------------:|-----------:|-------:|\n| 2018 | 56,181 | 55,864 | 317 | +0.6% |\n| 2019 | 55,729 | 55,814 | -85 | -0.2% |\n| 2020 | 55,840 | 56,511 | -671 | -1.2% |\n| 2021 | 56,591 | 56,270 | 321 | +0.6% |\n| 2022 | 55,779 | 56,321 | -541 | -1.0% |\n| 2023 | 56,947 | 56,606 | 341 | +0.6% |\n| 2024 | 61,364 | 62,132 | -768 | -1.2% |\n| 2025 | 63,012 | 62,895 | 117 | +0.2% |\n| 2026 | 63,803 | 63,942 | -139 | -0.2% |\n| 2027 | 65,123 | 65,028 | 94 | +0.1% |\n| 2028 | 66,203 | 65,759 | 444 | +0.7% |\n| 2029 | 67,113 | 66,758 | 355 | +0.5% |\n| 2030 | 68,019 | 68,401 | -383 | -0.6% |\n| 2031 | 69,640 | 69,260 | 379 | +0.5% |\n| 2032 | 68,986 | 69,873 | -888 | -1.3% |\n| 2033 | 70,681 | 71,836 | -1,155 | -1.6% |\n| 2034 | 72,264 | 72,062 | 202 | +0.3% |\n| 2035 | 72,758 | 72,503 | 255 | +0.4% |\n| 2036 | 73,542 | 73,592 | -50 | -0.1% |\n| 2037 | 73,811 | 73,635 | 176 | +0.2% |\n| 2038 | 74,615 | 75,643 | -1,028 | -1.4% |\n| 2039 | 76,736 | 76,734 | 2 | +0.0% |\n| 2040 | 77,005 | 76,496 | 509 | +0.7% |",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "Scenario Comparison"
   },
   {
-    "chunk_id": "climatefeat_statewide_projections.md::Notes::376",
+    "chunk_id": "climatefeat_statewide_projections.md::Notes::377",
     "text": "## Notes\n\n- Generated: March 2026\n- SSP370 ensemble: 24 runs from 8 models\n- SSP245 ensemble: 15 runs from 8 models\n- Peak defined as top 1% of daily statewide predicted demand per year\n- All values in MWh (daily total across all 58 counties)",
     "source": "climatefeat_statewide_projections.md",
     "category": "climatefeat",
     "section": "Notes"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::ClimateFEAT TAC Area Peak Demand Projections::377",
+    "chunk_id": "climatefeat_tac_projections.md::ClimateFEAT TAC Area Peak Demand Projections::378",
     "text": "# ClimateFEAT TAC Area Peak Demand Projections",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "ClimateFEAT TAC Area Peak Demand Projections"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Overview::378",
+    "chunk_id": "climatefeat_tac_projections.md::Overview::379",
     "text": "## Overview\n\nCounty-level ClimateFEAT predictions rolled up to CAISO Transmission Access Charge (TAC) areas using population-weighted county splits. Split counties are allocated proportionally (e.g., Kern County: 55% PG&E, 45% SCE). Non-CAISO territories (LADWP, SMUD, IID) are shown separately.\n\nPeak demand is defined as the mean of top-1% daily TAC-area demand per year, averaged across ensemble members.",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Overview"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::SSP3-7.0 TAC Area Projections::379",
+    "chunk_id": "climatefeat_tac_projections.md::SSP3-7.0 TAC Area Projections::380",
     "text": "## SSP3-7.0 TAC Area Projections",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "SSP3-7.0 TAC Area Projections"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP3-7.0)::380",
+    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP3-7.0)::381",
     "text": "### Annual Peak Demand by TAC Area (SSP3-7.0)\n\n\n#### CAISO Total (SSP3-7.0)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 51,460 | 49,742 | 53,571 |\n| 2020 | 51,348 | 49,443 | 52,950 |\n| 2025 | 57,491 | 55,530 | 59,706 |\n| 2030 | 61,926 | 60,139 | 63,425 |\n| 2035 | 66,288 | 64,272 | 68,778 |\n| 2040 | 69,965 | 67,539 | 72,675 |\n\nGrowth 2025\u21922040: +21.7%\n\n\n#### PGE (SSP3-7.0)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 21,076 | 20,231 | 22,002 |\n| 2020 | 21,342 | 20,360 | 22,036 |\n| 2025 | 23,081 | 22,503 | 23,943 |\n| 2030 | 24,220 | 23,380 | 24,683 |\n| 2035 | 26,135 | 25,494 | 26,858 |\n| 2040 | 27,816 | 26,906 | 29,015 |\n\nGrowth 2025\u21922040: +20.5%\n\n\n#### SCE (SSP3-7.0)",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Annual Peak Demand by TAC Area (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP3-7.0)::381",
+    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP3-7.0)::382",
     "text": "| 24,220 | 23,380 | 24,683 |\n| 2035 | 26,135 | 25,494 | 26,858 |\n| 2040 | 27,816 | 26,906 | 29,015 |\n\nGrowth 2025\u21922040: +20.5%\n\n\n#### SCE (SSP3-7.0) | Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 25,641 | 24,925 | 26,674 |\n| 2020 | 25,314 | 24,650 | 26,106 |\n| 2025 | 29,180 | 28,009 | 30,399 |\n| 2030 | 31,908 | 31,064 | 32,791 |\n| 2035 | 33,984 | 32,768 | 35,582 |\n| 2040 | 35,681 | 34,378 | 36,994 |\n\nGrowth 2025\u21922040: +22.3%\n\n\n#### SDGE (SSP3-7.0)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 4,742 | 4,587 | 4,895 |\n| 2020 | 4,692 | 4,433 | 4,808 |\n| 2025 | 5,230 | 5,018 | 5,364 |\n| 2030 | 5,797 | 5,695 | 5,952 |\n| 2035 | 6,169 | 6,010 | 6,338 |\n| 2040 | 6,468 | 6,255 | 6,666 |\n\nGrowth 2025\u21922040: +23.7%\n\n\n#### LADWP (SSP3-7.0)",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Annual Peak Demand by TAC Area (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP3-7.0)::382",
+    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP3-7.0)::383",
     "text": "2030 | 5,797 | 5,695 | 5,952 |\n| 2035 | 6,169 | 6,010 | 6,338 |\n| 2040 | 6,468 | 6,255 | 6,666 |\n\nGrowth 2025\u21922040: +23.7%\n\n\n#### LADWP (SSP3-7.0) | Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 4,697 | 4,544 | 4,875 |\n| 2020 | 4,601 | 4,503 | 4,750 |\n| 2025 | 5,584 | 5,376 | 5,790 |\n| 2030 | 6,068 | 5,896 | 6,257 |\n| 2035 | 6,349 | 6,129 | 6,597 |\n| 2040 | 6,540 | 6,307 | 6,813 |\n\nGrowth 2025\u21922040: +17.1%\n\n\n#### SMUD (SSP3-7.0)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 1,076 | 1,046 | 1,111 |\n| 2020 | 1,118 | 1,081 | 1,154 |\n| 2025 | 1,189 | 1,167 | 1,217 |\n| 2030 | 1,311 | 1,280 | 1,336 |\n| 2035 | 1,455 | 1,431 | 1,480 |\n| 2040 | 1,581 | 1,553 | 1,615 |\n\nGrowth 2025\u21922040: +33.0%\n\n\n#### IID (SSP3-7.0)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 276 | 268 | 282 |\n| 2020 | 276 | 269 | 287 |\n| 2025 | 315 | 309 | 326 |\n| 2030 | 333 | 326 | 342 |\n| 2035 | 351 | 341 | 364 |\n| 2040 | 372 | 361 | 379 |\n\nGrowth 2025\u21922040: +18.0%",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Annual Peak Demand by TAC Area (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::TAC Area Share of CAISO Peak (SSP3-7.0)::383",
+    "chunk_id": "climatefeat_tac_projections.md::TAC Area Share of CAISO Peak (SSP3-7.0)::384",
     "text": "### TAC Area Share of CAISO Peak (SSP3-7.0)\n\n\n**2025 (SSP3-7.0):**\n\n| TAC Area | Peak (MWh) | Share |\n|----------|----------:|------:|\n| PGE | 23,081 | 40.1% |\n| SCE | 29,180 | 50.8% |\n| SDGE | 5,230 | 9.1% |\n| **CAISO Total** | **57,491** | **100%** |\n\n**2040 (SSP3-7.0):**\n\n| TAC Area | Peak (MWh) | Share |\n|----------|----------:|------:|\n| PGE | 27,816 | 39.8% |\n| SCE | 35,681 | 51.0% |\n| SDGE | 6,468 | 9.2% |\n| **CAISO Total** | **69,965** | **100%** |",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "TAC Area Share of CAISO Peak (SSP3-7.0)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::SSP2-4.5 TAC Area Projections::384",
+    "chunk_id": "climatefeat_tac_projections.md::SSP2-4.5 TAC Area Projections::385",
     "text": "## SSP2-4.5 TAC Area Projections",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "SSP2-4.5 TAC Area Projections"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP2-4.5)::385",
+    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP2-4.5)::386",
     "text": "### Annual Peak Demand by TAC Area (SSP2-4.5)\n\n\n#### CAISO Total (SSP2-4.5)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 50,944 | 48,963 | 52,879 |\n| 2020 | 51,435 | 49,755 | 53,250 |\n| 2025 | 57,186 | 54,635 | 59,569 |\n| 2030 | 62,216 | 60,927 | 63,668 |\n| 2035 | 65,751 | 63,823 | 67,504 |\n| 2040 | 69,712 | 67,590 | 72,549 |\n\nGrowth 2025\u21922040: +21.9%\n\n\n#### PGE (SSP2-4.5)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 20,822 | 20,160 | 21,585 |\n| 2020 | 21,108 | 20,356 | 21,917 |\n| 2025 | 22,809 | 22,216 | 23,754 |\n| 2030 | 24,531 | 24,149 | 25,116 |\n| 2035 | 25,767 | 25,097 | 26,437 |\n| 2040 | 27,813 | 26,936 | 28,960 |\n\nGrowth 2025\u21922040: +21.9%\n\n\n#### SCE (SSP2-4.5)",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Annual Peak Demand by TAC Area (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP2-4.5)::386",
+    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP2-4.5)::387",
     "text": "| 24,531 | 24,149 | 25,116 |\n| 2035 | 25,767 | 25,097 | 26,437 |\n| 2040 | 27,813 | 26,936 | 28,960 |\n\nGrowth 2025\u21922040: +21.9%\n\n\n#### SCE (SSP2-4.5) | Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 25,361 | 24,201 | 26,380 |\n| 2020 | 25,571 | 24,803 | 26,408 |\n| 2025 | 29,119 | 27,360 | 30,412 |\n| 2030 | 31,896 | 31,123 | 32,644 |\n| 2035 | 33,810 | 32,679 | 34,768 |\n| 2040 | 35,394 | 34,365 | 36,874 |\n\nGrowth 2025\u21922040: +21.6%\n\n\n#### SDGE (SSP2-4.5)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 4,761 | 4,602 | 4,914 |\n| 2020 | 4,756 | 4,595 | 4,926 |\n| 2025 | 5,259 | 5,059 | 5,403 |\n| 2030 | 5,789 | 5,656 | 5,908 |\n| 2035 | 6,175 | 6,047 | 6,299 |\n| 2040 | 6,505 | 6,289 | 6,715 |\n\nGrowth 2025\u21922040: +23.7%\n\n\n#### LADWP (SSP2-4.5)",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Annual Peak Demand by TAC Area (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP2-4.5)::387",
+    "chunk_id": "climatefeat_tac_projections.md::Annual Peak Demand by TAC Area (SSP2-4.5)::388",
     "text": "2030 | 5,789 | 5,656 | 5,908 |\n| 2035 | 6,175 | 6,047 | 6,299 |\n| 2040 | 6,505 | 6,289 | 6,715 |\n\nGrowth 2025\u21922040: +23.7%\n\n\n#### LADWP (SSP2-4.5) | Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 4,619 | 4,442 | 4,799 |\n| 2020 | 4,637 | 4,519 | 4,822 |\n| 2025 | 5,580 | 5,267 | 5,822 |\n| 2030 | 6,074 | 5,953 | 6,227 |\n| 2035 | 6,293 | 6,104 | 6,511 |\n| 2040 | 6,499 | 6,272 | 6,760 |\n\nGrowth 2025\u21922040: +16.5%\n\n\n#### SMUD (SSP2-4.5)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 1,069 | 1,043 | 1,103 |\n| 2020 | 1,121 | 1,108 | 1,136 |\n| 2025 | 1,182 | 1,162 | 1,211 |\n| 2030 | 1,314 | 1,296 | 1,328 |\n| 2035 | 1,449 | 1,428 | 1,477 |\n| 2040 | 1,573 | 1,549 | 1,600 |\n\nGrowth 2025\u21922040: +33.1%\n\n\n#### IID (SSP2-4.5)\n\n| Year | Ensemble Mean (MWh) | 10th Pct | 90th Pct |\n|------|--------------------:|--------:|---------:|\n| 2018 | 276 | 266 | 285 |\n| 2020 | 279 | 271 | 285 |\n| 2025 | 316 | 303 | 329 |\n| 2030 | 331 | 322 | 338 |\n| 2035 | 351 | 345 | 356 |\n| 2040 | 373 | 363 | 384 |\n\nGrowth 2025\u21922040: +17.8%",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Annual Peak Demand by TAC Area (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::TAC Area Share of CAISO Peak (SSP2-4.5)::388",
+    "chunk_id": "climatefeat_tac_projections.md::TAC Area Share of CAISO Peak (SSP2-4.5)::389",
     "text": "### TAC Area Share of CAISO Peak (SSP2-4.5)\n\n\n**2025 (SSP2-4.5):**\n\n| TAC Area | Peak (MWh) | Share |\n|----------|----------:|------:|\n| PGE | 22,809 | 39.9% |\n| SCE | 29,119 | 50.9% |\n| SDGE | 5,259 | 9.2% |\n| **CAISO Total** | **57,186** | **100%** |\n\n**2040 (SSP2-4.5):**\n\n| TAC Area | Peak (MWh) | Share |\n|----------|----------:|------:|\n| PGE | 27,813 | 39.9% |\n| SCE | 35,394 | 50.8% |\n| SDGE | 6,505 | 9.3% |\n| **CAISO Total** | **69,712** | **100%** |",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "TAC Area Share of CAISO Peak (SSP2-4.5)"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Split County Allocations::389",
+    "chunk_id": "climatefeat_tac_projections.md::Split County Allocations::390",
     "text": "## Split County Allocations\n\n| County | PG&E | SCE | SDG&E | Non-CAISO |\n|--------|-----:|----:|------:|----------:|\n| Fresno | 95% | 5% | 0% | 0% |\n| Imperial | 0% | 10% | 0% | 90% |\n| Inyo | 0% | 80% | 0% | 20% |\n| Kern | 55% | 45% | 0% | 0% |\n| Kings | 70% | 30% | 0% | 0% |\n| Los Angeles | 0% | 70% | 0% | 30% |\n| Madera | 95% | 5% | 0% | 0% |\n| Mono | 0% | 90% | 0% | 10% |\n| Sacramento | 55% | 0% | 0% | 45% |\n| Santa Barbara | 60% | 40% | 0% | 0% |\n| Tulare | 40% | 60% | 0% | 0% |\n| Tuolumne | 95% | 5% | 0% | 0% |",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Split County Allocations"
   },
   {
-    "chunk_id": "climatefeat_tac_projections.md::Notes::390",
+    "chunk_id": "climatefeat_tac_projections.md::Notes::391",
     "text": "## Notes\n\n- Generated: March 2026\n- Split county percentages are approximate, based on population distribution\n- CAISO Total = PGE + SCE + SDGE TAC areas\n- Non-CAISO territories (LADWP, SMUD, IID) shown separately\n- Peak defined as top 1% of daily TAC-area predicted demand per year",
     "source": "climatefeat_tac_projections.md",
     "category": "climatefeat",
     "section": "Notes"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::ClimateFEAT vs CEC Peak Demand Comparison::391",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::ClimateFEAT vs CEC Peak Demand Comparison::392",
     "text": "# ClimateFEAT vs CEC Peak Demand Comparison",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT vs CEC Peak Demand Comparison"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::Overview::392",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::Overview::393",
     "text": "## Overview\n\nDirect comparison of ClimateFEAT projected peak demand against the CEC's 2025 IEPR forecast (adopted January 21, 2026). Both use peak hourly load in MW. ClimateFEAT values are the ensemble mean of top-1% peak days per year. CEC values are 1-in-2 coincident peak from the Fugate presentation (TN 267942, December 17, 2025).\n\n**Key methodological differences:**\n\n- CEC uses econometric sector models + WRF weather variants (4 detrended runs, SSP3-7.0 only)\n- ClimateFEAT uses a multi-stream transformer + CMIP6 ensembles (24 runs SSP3-7.0, 24 runs SSP2-4.5, trend retained)\n- CEC includes load modifiers (AAEE, AAFS, AATE, known loads) as additive adjustments\n- ClimateFEAT includes data center and EV features as model inputs but does not add separate load modifier scenarios\n- CEC forecasts at planning area level; ClimateFEAT forecasts at county level, rolled up via population-weighted TAC allocation",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "Overview"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::CAISO Total \u2014 SSP3-7.0 vs CEC::393",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::CAISO Total \u2014 SSP3-7.0 vs CEC::394",
     "text": "## CAISO Total \u2014 SSP3-7.0 vs CEC\n\n| Year | ClimateFEAT Mean (MW) | ClimateFEAT 10th | ClimateFEAT 90th | CEC Planning | CEC Planning + Known Loads | CEC Local Reliability |\n|------|----------------------:|-----------------:|-----------------:|-------------:|---------------------------:|----------------------:|\n| 2025 | 56,039 | 54,142 | 58,451 | 46,487 | 46,487 | 46,487 |\n| 2030 | 60,430 | 59,506 | 61,641 | 51,062 | 55,843 | 58,361 |\n| 2035 | 64,748 | 63,039 | 66,790 | 57,370 | 61,898 | 67,672 |\n| 2040 | 68,625 | 66,258 | 71,004 | 61,790 | 66,318 | 72,099 |\n\nClimateFEAT growth 2025\u21922040: +22.5%\nCEC Planning growth 2025\u21922040: +32.9%\nCEC Local Reliability growth 2025\u21922040: +55.1%",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "CAISO Total \u2014 SSP3-7.0 vs CEC"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::CAISO Total \u2014 SSP2-4.5 vs CEC::394",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::CAISO Total \u2014 SSP2-4.5 vs CEC::395",
     "text": "## CAISO Total \u2014 SSP2-4.5 vs CEC\n\n| Year | ClimateFEAT Mean (MW) | ClimateFEAT 10th | ClimateFEAT 90th | CEC Planning | CEC Planning + Known Loads | CEC Local Reliability |\n|------|----------------------:|-----------------:|-----------------:|-------------:|---------------------------:|----------------------:|\n| 2025 | 55,925 | 53,540 | 58,243 | 46,487 | 46,487 | 46,487 |\n| 2030 | 60,798 | 59,049 | 62,416 | 51,062 | 55,843 | 58,361 |\n| 2035 | 64,517 | 62,941 | 66,183 | 57,370 | 61,898 | 67,672 |\n| 2040 | 68,180 | 65,964 | 71,023 | 61,790 | 66,318 | 72,099 |\n\nClimateFEAT growth 2025\u21922040: +21.9%\nCEC Planning growth 2025\u21922040: +32.9%\nCEC Local Reliability growth 2025\u21922040: +55.1%",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "CAISO Total \u2014 SSP2-4.5 vs CEC"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::TAC-Level Comparison \u2014 SSP3-7.0 vs CEC::395",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::TAC-Level Comparison \u2014 SSP3-7.0 vs CEC::396",
     "text": "## TAC-Level Comparison \u2014 SSP3-7.0 vs CEC\n\nCEC non-coincident peak by planning area vs ClimateFEAT TAC-allocated peak.",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "TAC-Level Comparison \u2014 SSP3-7.0 vs CEC"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::PG&E TAC::396",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::PG&E TAC::397",
     "text": "### PG&E TAC\n\n| Year | ClimateFEAT Mean (MW) | 10th Pct | 90th Pct | CEC Planning | CEC + Known Loads |\n|------|----------------------:|--------:|---------:|-------------:|------------------:|\n| 2025 | 22,951 | 22,390 | 23,798 | 20,718 | 20,718 |\n| 2030 | 24,092 | 23,175 | 24,600 | 23,817 | 26,599 |\n| 2035 | 26,012 | 25,304 | 26,707 | 27,399 | 30,180 |\n| 2040 | 27,683 | 26,761 | 28,814 | 29,656 | 32,437 |\n\nClimateFEAT growth 2025\u21922040: +20.6%\nCEC Planning growth 2025\u21922040: +43.1%",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "PG&E TAC"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::SCE TAC::397",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::SCE TAC::398",
     "text": "### SCE TAC\n\n| Year | ClimateFEAT Mean (MW) | 10th Pct | 90th Pct | CEC Planning | CEC + Known Loads |\n|------|----------------------:|--------:|---------:|-------------:|------------------:|\n| 2025 | 29,002 | 27,895 | 30,082 | 23,617 | 23,617 |\n| 2030 | 31,697 | 30,992 | 32,600 | 24,509 | 26,573 |\n| 2035 | 33,775 | 32,726 | 35,217 | 26,389 | 28,453 |\n| 2040 | 35,481 | 34,222 | 36,790 | 28,213 | 30,277 |\n\nClimateFEAT growth 2025\u21922040: +22.3%\nCEC Planning growth 2025\u21922040: +19.5%",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "SCE TAC"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::SDG&E TAC::398",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::SDG&E TAC::399",
     "text": "### SDG&E TAC\n\n| Year | ClimateFEAT Mean (MW) | 10th Pct | 90th Pct | CEC Planning | CEC + Known Loads |\n|------|----------------------:|--------:|---------:|-------------:|------------------:|\n| 2025 | 5,199 | 4,990 | 5,346 | 4,236 | 4,236 |\n| 2030 | 5,764 | 5,655 | 5,892 | 4,503 | 4,679 |\n| 2035 | 6,131 | 5,985 | 6,312 | 4,858 | 5,034 |\n| 2040 | 6,433 | 6,239 | 6,610 | 5,318 | 5,438 |\n\nClimateFEAT growth 2025\u21922040: +23.8%\nCEC Planning growth 2025\u21922040: +25.5%",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "SDG&E TAC"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::Interpretation Notes::399",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::Interpretation Notes::400",
     "text": "## Interpretation Notes\n\n- ClimateFEAT values are top-1% peak day ensemble means; CEC values are 1-in-2 weather year peaks. These are conceptually similar but not identical.\n- CEC includes additive load modifiers (transportation electrification, fuel substitution, efficiency) that ClimateFEAT captures differently \u2014 as learned features rather than exogenous adjustments.\n- Where ClimateFEAT exceeds CEC projections, this may reflect the climate signal captured by trend-retained CMIP6 projections that the CEC's detrended WRF approach misses.\n- Where CEC exceeds ClimateFEAT, this likely reflects load modifiers (especially known loads and transportation electrification) that are modeled as additive blocks in the CEC framework.\n- The ClimateFEAT ensemble spread (10th\u201390th percentile) provides uncertainty bounds that the CEC does not produce for climate-driven demand variation.",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "Interpretation Notes"
   },
   {
-    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::Sources::400",
+    "chunk_id": "climatefeat_vs_cec_peak_comparison.md::Sources::401",
     "text": "## Sources\n\n- CEC: Nick Fugate, Draft CED 2025 Hourly & Peak Forecast (TN 267942, December 17, 2025)\n- ClimateFEAT: Transformer inference across CMIP6 LOCA2-Hybrid ensemble\n- Generated: March 2026",
     "source": "climatefeat_vs_cec_peak_comparison.md",
     "category": "climatefeat",
     "section": "Sources"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT vs. CEC 2024 IEPR Update: Methodology Comparison::401",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT vs. CEC 2024 IEPR Update: Methodology Comparison::402",
     "text": "# ClimateFEAT vs. CEC 2024 IEPR Update: Methodology Comparison",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT vs. CEC 2024 IEPR Update: Methodology Comparison"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Document Scope::402",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Document Scope::403",
     "text": "## Document Scope\n\nThis document compares the ClimateFEAT transformer model against the adopted Final 2024 Integrated Energy Policy Report Update electricity demand forecast (CEC-100-2024-001-LCF, adopted January 21, 2025). All CEC-side references are to the adopted forecast only \u2014 not proposed 2025 IEPR improvements or future plans. All ClimateFEAT references are to the March 15, 2026 model configuration documented in the project's methodology and performance notebooks.\n\nThese are complementary approaches, not competing ones. ClimateFEAT is a research tool designed to explore how nonstationary climate projections affect county-level demand. The CEC forecast is the state's official planning instrument with regulatory authority. The comparison identifies where ClimateFEAT's design choices address specific limitations acknowledged in the 2024 IEPR.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Document Scope"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Climate Data and Projections::403",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Climate Data and Projections::404",
     "text": "## Climate Data and Projections",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Climate Data and Projections"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::404",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::405",
     "text": "### CEC 2024 IEPR\n\n- Uses hourly output from **4 WRF models** (CESM2, CNRM-ESM2, EC-Earth3-Veg, FGOALS-g3), all under SSP3-7.0, downscaled and localized to specific weather stations within the CEC's forecast modeling framework.\n- 4 additional WRF models became available during the cycle but were **not incorporated**. CEC stated: \"The increased warming trend is too significant a change to implement during a forecast update.\"\n- Temperature analysis examines distributions of summer daily tmax for entire utility territories (all of PGE, all of SCE) as single distributions.\n- Climate trend is handled through detrended temperature series centered on 2023, producing a stationary weather library. The trend is effectively removed.\n- Weather variables in the forecast: HDD and CDD at the planning-area level.\n- No humidity variables in the climate/weather inputs to the demand models.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::405",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::406",
     "text": "### ClimateFEAT\n\n- Uses **LOCA2 downscaled CMIP6 projections** at 6 km resolution (David Pierce, Scripps; NCA5 input dataset). 4 climate variables: tasmax, tasmin, wind speed, specific humidity.\n- Runs inference across **24 SSP3-7.0 ensemble members and 15 SSP2-4.5 members** (11.7M and 7.3M rows respectively), spanning 27 GCMs and 329 total ensemble members in the LOCA2 archive.\n- The climate trend is **retained** \u2014 projections run forward through 2040 with warming intact, which is the point of a climate-informed forecast.\n- Weather features include population-weighted temperature (tmax, tmin, range), CDD at two thresholds (65\u00b0F, 75\u00b0F), HDD, specific humidity, wind speed, and derived dew point depression \u2014 all computed at the grid cell level before county aggregation.\n- Historical weather from URMA gridded analysis at 2.5 km resolution, not weather station point observations.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::406",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::407",
     "text": "### Why It Matters\n\nThe CEC acknowledged warmer projections exist but deferred them. ClimateFEAT is designed specifically for this problem: quantifying demand under nonstationary climate using ensemble projections rather than a detrended stationary library. The CEC's exclusion of humidity variables misses the demand signal from humid heat events, where AC load is driven by the combination of temperature and moisture, not temperature alone.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Why It Matters"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Spatial Resolution::407",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Spatial Resolution::408",
     "text": "## Spatial Resolution",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Spatial Resolution"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::408",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::409",
     "text": "### CEC 2024 IEPR\n\n- Forecast is produced for **8 planning areas and 20 forecast zones**, corresponding to utility service territories and sub-territories.\n- Temperature and econometric relationships are established at the planning-area or forecast-zone level.\n- A single temperature distribution represents an entire utility territory (e.g., PGE covers Eureka to Bakersfield in one distribution).",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::409",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::410",
     "text": "### ClimateFEAT\n\n- Operates at **58 California counties** with daily resolution.\n- All weather features are population-weighted at the grid cell level: WorldPop 1 km constrained population is regridded to the URMA 2.5 km grid via KDTree nearest-neighbor mapping, and weather values are aggregated as `sum(value \u00d7 pop) / sum(pop)` per county per day.\n- Degree days are computed at the grid cell before aggregation, preserving the nonlinear temperature-demand relationship that is lost when averaging temperature across large areas first.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::410",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::411",
     "text": "### Why It Matters\n\nPopulation-weighted county-level aggregation means that conditions in heavily populated areas (LA Basin, Bay Area, Sacramento Valley) are not diluted by sparsely populated terrain within the same utility territory. This matters most for heat events, where inland valleys can be 30\u00b0F warmer than coastal areas within the same planning zone.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Why It Matters"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Modeling Architecture::411",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Modeling Architecture::412",
     "text": "## Modeling Architecture",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Modeling Architecture"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::412",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::413",
     "text": "### CEC 2024 IEPR\n\n- **Econometric approach:** Historical correlations between consumption and drivers (income, employment, rates, weather) established per forecast zone and sector, then projected forward.\n- Separate model types by sector: residential end-use calibrated by econometric, commercial econometric, industrial/agricultural econometric by NAICS, TCU/streetlighting trend.\n- Load modifiers (BTM PV, storage, data centers, AAEE, AAFS, AATE) are computed independently and added/subtracted from the baseline.\n- The hourly forecast applies hourly profiles to the annual forecast, with load modifiers layered on using separate profile shapes.\n- Additive structure: baseline + data centers \u2212 BTM DG \u2212 AAEE + AAFS + AATE = managed forecast.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::413",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::414",
     "text": "### ClimateFEAT\n\n- **Multi-stream transformer:** Five parallel attention streams (weather-time, rolling-time, geo-numeric, heat wave, infrastructure-time) with cross-attention fusion across four streams. Infrastructure bypasses cross-attention and concatenates directly to the prediction head.\n- Learned county embeddings (8-dimensional) prepended as tokens to each stream, allowing the model to learn county-specific climate-demand responses.\n- Single end-to-end model predicts daily peak per-capita electricity demand (log-transformed) from all input features simultaneously \u2014 no additive decomposition into separate load modifiers.\n- Heat wave stream has 2\u00d7 embedding capacity (64 vs 32 dimensions), giving the model dedicated capacity for nonlinear extreme heat interactions.\n- 493,657 parameters. Trained on 84,738 samples (2018\u20132021, 58 counties \u00d7 ~365 days).",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::414",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::415",
     "text": "### Why It Matters\n\nThe CEC's additive structure means interactions between climate, infrastructure growth, and electrification must be specified manually or are missed entirely. ClimateFEAT's cross-attention fusion learns these interactions from data. For example, the interaction between rising data center load and rising temperatures \u2014 which compound in the same peak hours \u2014 is captured implicitly rather than requiring separate analysis.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Why It Matters"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Data Center Treatment::415",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Data Center Treatment::416",
     "text": "## Data Center Treatment",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Data Center Treatment"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::416",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::417",
     "text": "### CEC 2024 IEPR\n\n- Application-based approach: utility-reported data center applications from 5 utilities, categorized by stage (T&D Planning, Group 1\u20133).\n- Confidence levels applied by scenario: 50\u2013100% depending on application stage.\n- 67% utilization factor (from SVP analysis of 60+ existing data centers).\n- Load profiles assumed flat (minimal seasonal/daily variability), not necessarily coincident with system peak.\n- Load growth flattens after 2035 \u2014 no long-term growth rate modeled due to uncertainty.\n- Stakeholders commented the projections may be too low.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::417",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::418",
     "text": "### ClimateFEAT\n\n- Data center presence is captured through four features in the infrastructure-time stream: cumulative count, cumulative square footage, cumulative utility capacity (MW), and cumulative estimated load (MW).\n- Historical data from datacenters.com facility listings. Future projections use CEC CED 2024 growth rates by TAC area (PGE up to +96% by 2040, SCE +34%, SDGE flat), with 2024 ratio-based scaling for count/sqft and daily expansion.\n- Data center features interact with all other features through the prediction head \u2014 the model learns how data center growth modifies the relationship between weather and demand.\n- Infrastructure stream bypasses cross-attention, preventing slow-moving infrastructure trends from interfering with fast weather-demand dynamics.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::418",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::419",
     "text": "### Why It Matters\n\nCEC treats data centers as an additive load block layered onto the baseline. ClimateFEAT treats data center growth as a feature that modifies the demand response surface \u2014 the model can learn, for example, that a county with high data center load has a different temperature sensitivity than one without.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Why It Matters"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Humidity and Heat Stress::419",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Humidity and Heat Stress::420",
     "text": "## Humidity and Heat Stress",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Humidity and Heat Stress"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::420",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::421",
     "text": "### CEC 2024 IEPR\n\n- Weather inputs to demand models are HDD and CDD (temperature-only metrics).\n- No humidity, dew point, or apparent temperature variables.\n- No dedicated handling of compound heat events (high temperature + high humidity).",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::421",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::422",
     "text": "### ClimateFEAT\n\n- Specific humidity (spfh_peak_kgkg_pop) is a direct input feature, population-weighted.\n- Dew point depression (dpd_k) is derived from specific humidity via the Magnus formula: specific humidity \u2192 vapor pressure \u2192 dew point \u2192 depression (tmax \u2212 dewpoint, clipped at 0).\n- 5-day rolling mean dew point depression (dpd_k_roll5) captures persistence of humid conditions.\n- CDD75 (population-weighted cooling degree days above 75\u00b0F) is a dedicated extreme heat feature fed to the heat wave stream.\n- Validation shows CDD75 correlates at r=0.51 and dpd_k at r=0.46 with log demand in September, confirming both temperature and humidity carry independent signal.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::422",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::423",
     "text": "### Why It Matters\n\nA dry 100\u00b0F day in the Central Valley produces different AC demand than a humid 95\u00b0F day in the LA Basin. Temperature-only metrics miss this distinction. ClimateFEAT's humidity features capture the actual thermal comfort conditions that drive cooling load.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Why It Matters"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Temporal Dynamics::423",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Temporal Dynamics::424",
     "text": "## Temporal Dynamics",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Temporal Dynamics"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::424",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::425",
     "text": "### CEC 2024 IEPR\n\n- Annual consumption forecast with hourly profiles applied afterward.\n- Peak forecasts use weather variants (1-in-2, 1-in-5, 1-in-10) to represent different return periods.\n- Climate data detrended to stationary \u2014 multi-day heat wave persistence is not modeled as a trend-dependent phenomenon.\n- Monthly peak-day profiles used for Slice of Day resource adequacy.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::425",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::426",
     "text": "### ClimateFEAT\n\n- Daily resolution: one prediction per county per day (daily peak per-capita demand).\n- Rolling aggregates capture multi-day persistence: 5-day CDD sum, 5-day HDD sum, 5-day tmax max, 7-day tmax mean, 5-day dew point depression mean.\n- The rolling-time stream processes these temporal features through self-attention, then cross-attention fuses them with instantaneous weather.\n- Under inference, the model produces daily demand for every county across every ensemble member through 2040, generating a full distribution of outcomes rather than point estimates with weather variants.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::426",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::427",
     "text": "### Why It Matters\n\nMulti-day heat wave accumulation \u2014 where Day 3 of a heat wave produces higher demand than Day 1 at the same temperature because buildings haven't cooled overnight \u2014 is captured by the rolling features. The CEC's approach of applying hourly profiles to annual totals cannot represent this dynamic.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Why It Matters"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Ensemble and Uncertainty::427",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Ensemble and Uncertainty::428",
     "text": "## Ensemble and Uncertainty",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Ensemble and Uncertainty"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::428",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::429",
     "text": "### CEC 2024 IEPR\n\n- 4 WRF models provide climate inputs, all under SSP3-7.0.\n- Uncertainty is represented through peak weather variants (1-in-2, 1-in-5, 1-in-10) and scenario combinations (low/mid/high for data centers, BTM DG).\n- No multi-scenario SSP comparison.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::429",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT::430",
     "text": "### ClimateFEAT\n\n- 24 SSP3-7.0 and 15 SSP2-4.5 ensemble members from LOCA2.\n- Scenario comparison: SSP3-7.0 (high emissions) vs SSP2-4.5 (moderate mitigation) reveals that demand trajectories converge through ~2040 (~49k \u2192 ~70k MWh per-capita statewide, ~40% increase regardless of pathway), diverging only after 2040.\n- Sensitivity analysis: 4 frozen-feature runs per scenario isolate climate signal from infrastructure growth (data centers, BEVs).\n- Key finding: an interaction term of approximately \u221211k MWh by 2040 exists between climate and infrastructure features, demonstrating that the nonlinear cross-attention architecture prevents clean additive decomposition. This is a feature, not a bug \u2014 it captures real-world interactions the additive approach cannot.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::430",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Why It Matters::431",
     "text": "### Why It Matters\n\nClimateFEAT's ensemble approach generates a distribution of demand futures per county, per day, across climate models and emission scenarios. The CEC uses a small number of deterministic weather variants. ClimateFEAT's scenario convergence finding \u2014 that near-term infrastructure planning is largely scenario-independent through 2040 \u2014 is directly actionable for CEC planning horizons.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Why It Matters"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Performance Context::431",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Performance Context::432",
     "text": "## Performance Context\n\nThese are not directly comparable numbers because the models forecast different quantities at different scales. ClimateFEAT predicts daily county-level peak per-capita demand; the CEC forecast predicts annual consumption and hourly system load at the planning-area level. The numbers below characterize ClimateFEAT's accuracy on historical data.",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Performance Context"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT Transformer (March 15, 2026 notebook)::432",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::ClimateFEAT Transformer (March 15, 2026 notebook)::433",
     "text": "### ClimateFEAT Transformer (March 15, 2026 notebook)\n\n- Validation (2022): RMSE 139 MWh, pop-weighted RMSE 12.0%\n- Test (2023): RMSE 172 MWh, pop-weighted RMSE 14.8%\n- Outperforms LightGBM v4 baseline on test: 172 vs 199 MWh RMSE, 14.8% vs 17.4% pop-weighted",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "ClimateFEAT Transformer (March 15, 2026 notebook)"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::433",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::CEC 2024 IEPR::434",
     "text": "### CEC 2024 IEPR\n\n- The CEC does not publish comparable county-level daily RMSE metrics. Forecast accuracy is assessed through comparison with actual sales data in subsequent IEPR cycles, and through peak forecast benchmarking against weather-normalized peaks.\n\n---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "CEC 2024 IEPR"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Summary of Key Differences::434",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Summary of Key Differences::435",
     "text": "## Summary of Key Differences",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Summary of Key Differences"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Summary of Key Differences::435",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Summary of Key Differences::436",
     "text": "Summary of Key Differences | Dimension | CEC 2024 IEPR | ClimateFEAT |\n|-----------|--------------|-------------|\n| Climate models | 4 WRF (detrended, stationary) | 24+ CMIP6 ensemble (trend retained) |\n| Emission scenarios | SSP3-7.0 only | SSP3-7.0 and SSP2-4.5 |\n| Spatial resolution | 8 planning areas / 20 zones | 58 counties |\n| Weather aggregation | Weather station point obs | 2.5 km gridded, population-weighted |\n| Humidity | Not included | Specific humidity, dew point depression, rolling |\n| Degree day computation | Planning-area level | Grid cell level before aggregation |\n| Architecture | Sector econometric + additive load modifiers | Multi-stream transformer with cross-attention |\n| Data center handling | Additive load block from applications | Learned feature in infrastructure stream |\n| Temporal resolution | Annual consumption + hourly profiles | Daily county-level predictions |\n| Heat wave persistence | Not explicitly modeled | Rolling 5-day and 7-day aggregates |\n| Forecast target | Managed system sales and peak (GWh, MW) | Daily per-capita peak demand (log MWh) |",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Summary of Key Differences"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Summary of Key Differences::436",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Summary of Key Differences::437",
     "text": "modeled | Rolling 5-day and 7-day aggregates |\n| Forecast target | Managed system sales and peak (GWh, MW) | Daily per-capita peak demand (log MWh) | ---",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
     "section": "Summary of Key Differences"
   },
   {
-    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Source Documents::437",
+    "chunk_id": "climatefeat_vs_iepr_2024_comparison.md::Source Documents::438",
     "text": "## Source Documents\n\n- CEC: Final 2024 Integrated Energy Policy Report Update. CEC-100-2024-001-LCF. Docket 24-IEPR-01, TN 266141.\n- ClimateFEAT: siLU_MAR_15_txfrm_attn_730pm__1_.ipynb (transformer training), Mar_3_1103pm_LightGBM.ipynb (baseline), and RAG corpus documents (climatefeat_methodology.md, climatefeat_feature_engineering.md, climatefeat_ssp_scenario_comparison.md, climatefeat_data_pipeline.md, climatefeat_model_performance.md, climatefeat_feature_dictionary.md).",
     "source": "climatefeat_vs_iepr_2024_comparison.md",
     "category": "climatefeat",
