@@ -179,7 +179,7 @@ h4 {
 [data-testid="stSlider"] [role="slider"] {
   position: absolute !important;
   top: 50% !important;
-  transform: translate(-50%, -50%) !important;
+  transform: translate(0%, -50%) !important;
   margin: 0 !important;
 }
 [data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
@@ -194,6 +194,13 @@ h4 {
   background: transparent !important;
   box-shadow: none !important;
   white-space: nowrap !important;
+}
+/* Flip fill: gray = past (left), red = future (right) */
+[data-testid="stSlider"] [data-baseweb="slider"] [role="progressbar"] {
+  background-color: rgba(120,120,120,0.3) !important;
+}
+[data-testid="stSlider"] [data-baseweb="slider"] > div > div:last-child {
+  background-color: #E53935 !important;
 }
 [data-testid="stTickBarMin"],
 [data-testid="stTickBarMax"] {
