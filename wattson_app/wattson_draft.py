@@ -631,7 +631,8 @@ with map_col:
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         height=480,
         coloraxis_colorbar=dict(
-            title=dict(text=color_label, side="right"),
+            title=color_label,
+            titleside="right",
             thickness=10,
             len=0.7,
             x=1.01,
