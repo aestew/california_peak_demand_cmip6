@@ -183,13 +183,14 @@ h4 {
   margin: 0 !important;
 }
 [data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
-  top: 50% !important;
+  top: -22px !important;
   bottom: auto !important;
-  left: 18px !important;
-  transform: translateY(-50%) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   font-family: var(--mono) !important;
-  font-size: 11px !important;
-  color: var(--accent) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #E53935 !important;
   background: transparent !important;
   box-shadow: none !important;
   white-space: nowrap !important;
