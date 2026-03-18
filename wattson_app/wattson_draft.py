@@ -174,24 +174,33 @@ h4 {
   letter-spacing: 0.04em !important;
 }
 
-/* Slider */
+/* Slider — hide label (year shown in value bubble), fix thumb on track */
 [data-testid="stSlider"] label {
-  color: var(--text-dim) !important;
-  font-family: var(--mono) !important;
-  font-size: 10px !important;
-  letter-spacing: 0.07em !important;
-  text-transform: uppercase !important;
+  display: none !important;
+}
+[data-testid="stSlider"] {
+  padding-top: 0 !important;
+  margin-top: 4px !important;
 }
 [data-testid="stSlider"] [data-baseweb="slider"] {
-  margin-top: 8px !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
-[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
-  top: 50% !important;
-  transform: translateY(-50%) !important;
+[data-testid="stSlider"] [data-baseweb="slider"] > div {
+  align-items: center !important;
 }
+/* Thumb — sits exactly on the track */
 [data-testid="stSlider"] [role="slider"] {
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
+  margin-top: 0 !important;
+  top: auto !important;
+  transform: none !important;
+}
+/* Value label above thumb */
+[data-testid="stSlider"] [data-testid="stTickBarMin"],
+[data-testid="stSlider"] [data-testid="stTickBarMax"] {
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  color: var(--text-dim) !important;
 }
 
 /* Buttons — suggestion pills */
