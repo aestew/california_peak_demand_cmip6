@@ -23,6 +23,7 @@ st.set_page_config(page_title="ClimateFEAT Explorer", page_icon="\U0001f321\ufe0
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600;700&family=Inconsolata:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 :root {
   --accent:        #5AAAE8;
@@ -39,6 +40,13 @@ st.markdown("""
   --sans:          'Manrope', -apple-system, sans-serif;
   --mono:          'Inconsolata', monospace;
   --serif:         'Literata', Georgia, serif;
+}
+
+/* Fix Material Symbols icons rendering as text */
+[data-testid="stIconMaterial"] {
+  font-family: 'Material Symbols Rounded' !important;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
+  -webkit-font-smoothing: antialiased;
 }
 
 .stApp {
@@ -394,6 +402,11 @@ except Exception:
     pass
 
 # ---------------------------------------------------------------------------
+# CONSTANTS
+# ---------------------------------------------------------------------------
+MAP_HEIGHT = 600  # px -- map and chat share this height
+
+# ---------------------------------------------------------------------------
 # HEADER
 # ---------------------------------------------------------------------------
 st.title("ClimateFEAT Explorer")
@@ -404,10 +417,19 @@ st.caption(
 
 # =====================================================================
 # TOP CONTROLS -- single row of dropdowns
+# Reordered: Boundaries, Emissions scenario, Growth or Demand, % vs Abs
 # =====================================================================
 c1, c2, c3, c4 = st.columns(4, gap="medium")
 
 with c1:
+    grid_mode = st.selectbox(
+        "Boundaries",
+        ["County", "TAC areas"],
+        index=0,
+        key="grid_mode",
+    )
+
+with c2:
     scenario = st.selectbox(
         "Emissions scenario",
         ["High Emissions (SSP3-7.0)", "Moderate Emissions (SSP2-4.5)"],
@@ -415,28 +437,20 @@ with c1:
         key="scenario_select",
     )
 
-with c2:
+with c3:
     color_metric = st.selectbox(
-        "Map shading",
+        "Growth or Demand",
         ["Growth vs 2025", "Peak demand"],
         index=0,
         key="map_color",
     )
 
-with c3:
+with c4:
     color_view = st.selectbox(
-        "Units",
+        "% Change vs. Absolute",
         ["% change", "Absolute (MWh)"],
         index=0,
         key="map_color_view",
-    )
-
-with c4:
-    grid_mode = st.selectbox(
-        "Boundaries",
-        ["County", "TAC areas"],
-        index=0,
-        key="grid_mode",
     )
 
 scenario_key = "ssp370" if "SSP3-7.0" in scenario else "ssp245"
@@ -580,7 +594,7 @@ with map_col:
 
     fig_map.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        height=520,
+        height=MAP_HEIGHT,
         coloraxis_colorbar=dict(
             title=color_label, title_side="right",
             thickness=10, len=0.7, x=1.01, tickfont=dict(size=16),
@@ -592,7 +606,7 @@ with map_col:
 
     st.plotly_chart(fig_map, use_container_width=True, key="county_map")
 
-# -- CHAT --
+# -- CHAT (height-matched to map) --
 with chat_col:
     st.markdown("#### Ask about the model")
 
@@ -631,15 +645,15 @@ with chat_col:
         if "explorer_messages" not in st.session_state:
             st.session_state.explorer_messages = []
 
-        if st.session_state.explorer_messages:
-            chat_container = st.container(height=420)
-            with chat_container:
-                for msg in st.session_state.explorer_messages:
-                    with st.chat_message(msg["role"]):
-                        st.markdown(msg["content"])
-        else:
-            chat_container = st.container()
+        # Scrollable chat history -- height matched to map minus header/buttons/input
+        CHAT_HISTORY_HEIGHT = MAP_HEIGHT - 160
+        chat_container = st.container(height=CHAT_HISTORY_HEIGHT)
+        with chat_container:
+            for msg in st.session_state.explorer_messages:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
 
+        # Text input always at the bottom
         user_input = st.chat_input(
             "Ask about projections, capacity, methodology...",
             key="explorer_chat",
@@ -648,16 +662,16 @@ with chat_col:
         prompt = prefill or user_input
 
         if prompt:
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            with st.chat_message("assistant"):
-                with st.spinner("Searching corpus..."):
-                    chunks = retrieve(prompt, collection, None)
-                    answer = generate_answer(prompt, chunks)
-                st.markdown(answer)
+            st.session_state.explorer_messages.append(
+                {"role": "user", "content": prompt}
+            )
+            with st.spinner("Searching corpus..."):
+                chunks = retrieve(prompt, collection, None)
+                answer = generate_answer(prompt, chunks)
             st.session_state.explorer_messages.append(
                 {"role": "assistant", "content": answer}
             )
+            st.rerun()
 
 
 # =====================================================================
@@ -674,7 +688,6 @@ other_label = "SSP2-4.5" if scenario_key == "ssp370" else "SSP3-7.0"
 show_historical = st.session_state.get("layer_hist", True)
 show_ensemble = st.session_state.get("layer_ens", False)
 show_capacity = st.session_state.get("layer_cap", True)
-show_storage_fill = st.session_state.get("layer_fill", True)
 year = st.session_state.get("explorer_year", 2030)
 
 X_MIN_YEAR = 2018
@@ -682,7 +695,8 @@ X_MAX_YEAR = 2040
 
 fig_ts = go.Figure()
 
-if show_capacity and show_storage_fill:
+# Storage band fill -- always shown when capacity is on (no separate toggle)
+if show_capacity:
     fig_ts.add_trace(go.Scatter(
         x=pd.concat([capacity_df["date"], capacity_df["date"][::-1]]),
         y=pd.concat([capacity_df["total_mw"], capacity_df["firm_gen_mw"][::-1]]),
@@ -732,12 +746,13 @@ fig_ts.add_trace(go.Scatter(
     ),
 ))
 
+# Ensemble range -- darker fill
 if show_ensemble:
     fig_ts.add_trace(go.Scatter(
         x=pd.concat([summary["date"], summary["date"][::-1]]),
         y=pd.concat([summary["high"], summary["low"][::-1]]),
-        fill="toself", fillcolor="rgba(50, 130, 200, 0.12)",
-        line=dict(color="rgba(255,255,255,0)"),
+        fill="toself", fillcolor="rgba(50, 130, 200, 0.35)",
+        line=dict(color="rgba(50, 130, 200, 0.15)"),
         name=f"{scenario} range (p10-p90)", hoverinfo="skip",
     ))
 
@@ -762,6 +777,12 @@ fig_ts.add_vline(
     line_dash="solid", line_color="rgba(255, 255, 255, 0.35)", line_width=1.5,
 )
 
+# Count legend items to calculate near-square layout
+n_traces = len(fig_ts.data)
+# Target ~square: if n items, use ceil(sqrt(n)) columns
+import math
+n_legend_cols = max(1, math.ceil(math.sqrt(n_traces)))
+
 fig_ts.update_layout(
     xaxis_title="Year",
     yaxis_title="Peak Demand / Capacity (MWh / MW)",
@@ -773,7 +794,17 @@ fig_ts.update_layout(
     hovermode="x unified",
     height=370,
     margin={"r": 10, "t": 10, "l": 60, "b": 40},
-    legend=dict(orientation="h", y=-0.2, font=dict(size=16)),
+    legend=dict(
+        orientation="h",
+        y=-0.18,
+        x=0.5,
+        xanchor="center",
+        font=dict(size=14),
+        traceorder="normal",
+        # entrywidth constrains each item so they wrap into rows ~ square
+        entrywidth=180,
+        entrywidthmode="pixels",
+    ),
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
@@ -813,7 +844,6 @@ with layer_col:
     show_historical = st.checkbox("Historical actuals", value=True, key="layer_hist")
     show_ensemble = st.checkbox("Ensemble range", value=False, key="layer_ens")
     show_capacity = st.checkbox("Capacity lines", value=True, key="layer_cap")
-    show_storage_fill = st.checkbox("Storage band", value=True, key="layer_fill")
 
 # =====================================================================
 # TABLES
