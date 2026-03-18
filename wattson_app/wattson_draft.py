@@ -61,9 +61,15 @@ h1, h2, h3 {
 h4, h5, h6, p, span, label {
   font-family: var(--sans) !important;
 }
+/* Tighten header spacing */
 .stApp h1 {
   font-size: clamp(28px, 3vw, 40px) !important;
   font-weight: 700 !important;
+  margin-bottom: 0 !important;
+}
+[data-testid="stCaptionContainer"] {
+  margin-top: 2px !important;
+  margin-bottom: 8px !important;
 }
 
 /* Caption — mono uppercase like website eyebrow */
@@ -107,12 +113,24 @@ h4, h5, h6, p, span, label {
   text-transform: uppercase !important;
 }
 
-/* Checkboxes */
-[data-testid="stCheckbox"] label {
+/* Checkboxes — high specificity to override Streamlit defaults */
+[data-testid="stCheckbox"] label,
+[data-testid="stCheckbox"] label span,
+[data-testid="stCheckbox"] label p {
   color: var(--text-body) !important;
   font-family: var(--mono) !important;
   font-size: 11px !important;
+  font-weight: 400 !important;
   letter-spacing: 0.05em !important;
+  line-height: 1.4 !important;
+}
+
+/* Hide chat submit button icon text (double_arrow_right fallback) */
+[data-testid="stChatInputContainer"] button span {
+  font-size: 0 !important;
+}
+[data-testid="stChatInputContainer"] button svg {
+  display: block !important;
 }
 
 /* Slider */
@@ -388,12 +406,6 @@ st.caption(
     "58 counties · 2018–2040 · CMIP6 ensemble uncertainty"
 )
 
-tc1, tc2 = st.columns([1.5, 1.5])
-with tc1:
-    pass
-with tc2:
-    pass
-
 # Derive scenario/peak from session state so map_col can read them
 # (ctrl_col sets the widgets but renders after map_col)
 _scenario_val = st.session_state.get("scenario_select", "High Emissions — 2.2–4.4°C warming (SSP3-7.0)")
@@ -613,7 +625,7 @@ with map_col:
                 text=all_text,
                 hoverinfo="text",
                 name=label,
-                showlegend=True,
+                showlegend=False,
                 legendgroup="transmission",
             ))
 
@@ -632,7 +644,7 @@ with ctrl_col:
     )
 
     peak_type_sel = st.selectbox(
-        "Predicted Peak Electricity Demand threshold",
+        "Peak demand threshold",
         ["Top 1%", "Top 5%"],
         index=0,
         key="peak_select",
