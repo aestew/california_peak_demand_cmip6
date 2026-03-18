@@ -321,9 +321,20 @@ def load_ca_geojson():
         f["properties"]["NAME"] = FIPS_COUNTY.get(f["id"], "Unknown")
     return {"type": "FeatureCollection", "features": ca_features}
 
+@st.cache_data
+def load_transmission_lines():
+    """
+    California electric transmission lines — CEC GIS Unit.
+    Pre-fetched from CEC ArcGIS FeatureServer, operational lines only.
+    Credit: California Energy Commission, energy.ca.gov
+    """
+    df = pd.read_parquet(os.path.join(DATA_DIR, "transmission_lines.parquet"))
+    return df.to_dict("records")
+
 summary_370, summary_245, hist_annual = load_forecast_data()
 county_df, tac_df, state_df, capacity_df = load_viz_data()
 ca_geojson = load_ca_geojson()
+transmission_lines = load_transmission_lines()
 
 # ---------------------------------------------------------------------------
 # LOAD RAG
@@ -480,6 +491,43 @@ with map_col:
         coloraxis_colorbar=dict(title=color_label, thickness=12, len=0.6, x=1.0),
         paper_bgcolor="rgba(0,0,0,0)",
     )
+
+    # ── Transmission lines overlay — styled by voltage class ──
+    show_transmission = st.session_state.get("layer_tx", True)
+    if show_transmission and transmission_lines:
+
+        kv_classes = [
+            (500,  99999, "500 kV",     "rgba(255,180,50,0.90)",  2.5),
+            (230,  500,   "230–220 kV", "rgba(140,200,255,0.75)", 1.8),
+            (115,  230,   "115–161 kV", "rgba(90,170,150,0.50)",  1.2),
+            (0,    115,   "< 115 kV",   "rgba(80,120,110,0.28)",  0.7),
+        ]
+
+        for min_kv, max_kv, label, color, width in kv_classes:
+            bucket = [l for l in transmission_lines
+                      if min_kv <= l["kv"] < max_kv]
+            if not bucket:
+                continue
+
+            all_lons, all_lats, all_text = [], [], []
+            for seg in bucket:
+                hover = f"{seg['name'] or seg['owner']} — {int(seg['kv'])} kV"
+                all_lons.extend(seg["lons"] + [None])
+                all_lats.extend(seg["lats"] + [None])
+                all_text.extend([hover] * len(seg["lons"]) + [None])
+
+            fig_map.add_trace(go.Scattermapbox(
+                lon=all_lons,
+                lat=all_lats,
+                mode="lines",
+                line=dict(color=color, width=width),
+                text=all_text,
+                hoverinfo="text",
+                name=label,
+                showlegend=True,
+                legendgroup="transmission",
+            ))
+
     st.plotly_chart(fig_map, use_container_width=True, key="county_map")
 
 # ── CONTROLS (right panel) ──
@@ -492,6 +540,10 @@ with ctrl_col:
         label_visibility="collapsed",
         key="map_color",
     )
+
+    st.markdown("---")
+    st.markdown("**Map layers**")
+    show_transmission = st.checkbox("Transmission paths", value=True, key="layer_tx")
 
     st.markdown("---")
     st.markdown("**Chart layers**")
