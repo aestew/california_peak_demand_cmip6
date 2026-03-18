@@ -18,6 +18,220 @@ from urllib.request import urlopen
 st.set_page_config(page_title="ClimateFEAT Explorer", page_icon="⚡", layout="wide")
 
 # ---------------------------------------------------------------------------
+# DESIGN SYSTEM — matches index.html / wattson_landing.html
+# ---------------------------------------------------------------------------
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600;700&family=Inconsolata:wght@400;500&display=swap');
+
+:root {
+  --accent:        #5AAAE8;
+  --accent-dim:    rgba(90,170,232,0.12);
+  --accent-border: rgba(90,170,232,0.22);
+  --green-muted:   #4E8878;
+  --text-primary:  #DEE8E2;
+  --text-body:     #8AA8A0;
+  --text-dim:      #5A8A78;
+  --text-faint:    #3A6858;
+  --card-bg:       rgba(14,28,26,0.55);
+  --card-border:   rgba(90,170,232,0.10);
+  --border:        rgba(90,170,232,0.08);
+  --sans:          'Manrope', -apple-system, sans-serif;
+  --mono:          'Inconsolata', monospace;
+  --serif:         'Literata', Georgia, serif;
+}
+
+/* App shell */
+.stApp {
+  background: linear-gradient(180deg,
+    #080E18 0%, #0A1520 8%, #0C1822 20%,
+    #0D1A22 32%, #0E1C22 42%, #0F1E1C 55%,
+    #0F1E1A 68%, #0E1D18 80%, #0C1A14 100%
+  ) !important;
+  font-family: var(--sans) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Typography */
+h1, h2, h3 {
+  font-family: var(--serif) !important;
+  color: var(--text-primary) !important;
+  letter-spacing: -0.025em !important;
+}
+h4, h5, h6, p, span, label {
+  font-family: var(--sans) !important;
+}
+.stApp h1 {
+  font-size: clamp(28px, 3vw, 40px) !important;
+  font-weight: 700 !important;
+}
+
+/* Caption — mono uppercase like website eyebrow */
+[data-testid="stCaptionContainer"] p {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  color: var(--green-muted) !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+}
+
+/* Selectbox */
+[data-testid="stSelectbox"] > div > div {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+}
+[data-testid="stSelectbox"] label {
+  color: var(--text-dim) !important;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+/* Radio */
+[data-testid="stRadio"] label { color: var(--text-body) !important; font-size: 13px !important; }
+[data-testid="stRadio"] [data-testid="stMarkdownContainer"] p {
+  color: var(--text-dim) !important;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+}
+
+/* Checkboxes */
+[data-testid="stCheckbox"] label { color: var(--text-body) !important; font-size: 13px !important; }
+
+/* Slider */
+[data-testid="stSlider"] label {
+  color: var(--text-dim) !important;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+}
+
+/* Buttons — suggestion pills */
+.stButton > button {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-body) !important;
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  transition: border-color 0.2s, color 0.2s, background 0.2s !important;
+}
+.stButton > button:hover {
+  border-color: var(--accent-border) !important;
+  color: var(--accent) !important;
+  background: var(--accent-dim) !important;
+}
+
+/* Chat messages */
+[data-testid="stChatMessage"] {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 10px !important;
+  margin-bottom: 8px !important;
+}
+[data-testid="stChatMessage"] p {
+  color: var(--text-body) !important;
+  font-size: 13.5px !important;
+  line-height: 1.65 !important;
+}
+[data-testid="stChatInputContainer"] textarea {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+}
+[data-testid="stChatInputContainer"] textarea::placeholder {
+  color: var(--text-faint) !important;
+}
+
+/* Info box */
+[data-testid="stInfo"] {
+  background: var(--accent-dim) !important;
+  border: 1px solid var(--accent-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-body) !important;
+}
+
+/* Tabs */
+[data-testid="stTabs"] [data-baseweb="tab-list"] {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border) !important;
+  gap: 4px !important;
+}
+[data-testid="stTabs"] [data-baseweb="tab"] {
+  background: transparent !important;
+  color: var(--text-dim) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  border: none !important;
+}
+[data-testid="stTabs"] [aria-selected="true"] {
+  color: var(--accent) !important;
+  border-bottom: 2px solid var(--accent) !important;
+}
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+  border: 1px solid var(--card-border) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+[data-testid="stDataFrame"] th {
+  background: rgba(14,28,26,0.8) !important;
+  color: var(--accent) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+[data-testid="stDataFrame"] td {
+  background: var(--card-bg) !important;
+  color: var(--text-body) !important;
+  font-family: var(--mono) !important;
+  font-size: 12px !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Divider */
+hr {
+  border: none !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent) !important;
+  margin: 8px auto !important;
+}
+
+/* Markdown bold labels in right panel */
+[data-testid="stMarkdownContainer"] strong {
+  color: var(--accent) !important;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-border); }
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
 # PATHS & API KEYS
 # ---------------------------------------------------------------------------
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -133,7 +347,7 @@ except Exception:
 st.title("⚡ ClimateFEAT Explorer")
 st.caption(
     "Climate-informed peak electricity demand projections for California — "
-    "58 counties, 2018–2040, CMIP6 ensemble uncertainty"
+    "58 counties · 2018–2040 · CMIP6 ensemble uncertainty"
 )
 
 tc1, tc2 = st.columns([1.5, 1.5])
