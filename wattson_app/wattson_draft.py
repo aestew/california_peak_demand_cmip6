@@ -73,7 +73,7 @@ h4 {
 [data-testid="stCaptionContainer"] { margin-top: 2px !important; margin-bottom: 8px !important; }
 [data-testid="stCaptionContainer"] p {
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   color: var(--green-muted) !important;
   letter-spacing: 0.07em !important;
   text-transform: uppercase !important;
@@ -86,12 +86,12 @@ h4 {
   border-radius: 8px !important;
   color: var(--text-primary) !important;
   font-family: var(--sans) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 [data-testid="stSelectbox"] label {
   color: var(--accent) !important;
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
 }
@@ -102,7 +102,7 @@ h4 {
 [data-testid="stCheckbox"] label p {
   color: var(--text-body) !important;
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   font-weight: 400 !important;
   letter-spacing: 0.05em !important;
   line-height: 1.4 !important;
@@ -131,7 +131,7 @@ h4 {
 [data-testid="stChatMessage"] code {
   color: var(--text-body) !important;
   font-family: var(--sans) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   line-height: 1.65 !important;
 }
 [data-testid="stChatInputContainer"] textarea {
@@ -140,12 +140,12 @@ h4 {
   border-radius: 8px !important;
   color: var(--text-primary) !important;
   font-family: var(--sans) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 [data-testid="stChatInputContainer"] textarea::placeholder {
   color: var(--text-faint) !important;
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   letter-spacing: 0.04em !important;
 }
 
@@ -153,7 +153,7 @@ h4 {
 [data-testid="stSlider"] label { display: none !important; }
 [data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   color: #E53935 !important;
 }
@@ -169,7 +169,7 @@ h4 {
 [data-testid="stTickBarMin"],
 [data-testid="stTickBarMax"] {
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   color: var(--text-dim) !important;
 }
 /* CSS fallback for slider alignment; JS overrides after render */
@@ -187,7 +187,7 @@ h4 {
   border-radius: 8px !important;
   color: var(--text-body) !important;
   font-family: var(--sans) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   font-weight: 400 !important;
   transition: border-color 0.2s, color 0.2s, background 0.2s !important;
 }
@@ -215,7 +215,7 @@ h4 {
   background: transparent !important;
   color: var(--text-dim) !important;
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   border: none !important;
@@ -235,7 +235,7 @@ h4 {
   background: rgba(14,28,26,0.8) !important;
   color: var(--accent) !important;
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
   border-bottom: 1px solid var(--border) !important;
@@ -244,7 +244,7 @@ h4 {
   background: var(--card-bg) !important;
   color: var(--text-body) !important;
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   border-bottom: 1px solid var(--border) !important;
 }
 
@@ -258,7 +258,7 @@ hr {
 [data-testid="stMarkdownContainer"] strong {
   color: var(--accent) !important;
   font-family: var(--mono) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
 }
@@ -583,7 +583,7 @@ with map_col:
         height=520,
         coloraxis_colorbar=dict(
             title=color_label, title_side="right",
-            thickness=10, len=0.7, x=1.01, tickfont=dict(size=14),
+            thickness=10, len=0.7, x=1.01, tickfont=dict(size=16),
         ),
         paper_bgcolor="rgba(0,0,0,0)",
     )
@@ -766,14 +766,14 @@ fig_ts.update_layout(
     xaxis_title="Year",
     yaxis_title="Peak Demand / Capacity (MWh / MW)",
     xaxis=dict(
-        tickfont=dict(size=14),
+        tickfont=dict(size=16),
         range=["2018-01-01", "2040-01-01"],
     ),
-    yaxis=dict(tickfont=dict(size=14)),
+    yaxis=dict(tickfont=dict(size=16)),
     hovermode="x unified",
     height=370,
     margin={"r": 10, "t": 10, "l": 60, "b": 40},
-    legend=dict(orientation="h", y=-0.2, font=dict(size=14)),
+    legend=dict(orientation="h", y=-0.2, font=dict(size=16)),
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
