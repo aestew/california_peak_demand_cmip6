@@ -337,22 +337,12 @@ def load_transmission_lines():
     df = pd.read_parquet(os.path.join(DATA_DIR, "transmission_lines.parquet"))
     return df.to_dict("records")
 
-@st.cache_data
-def load_lse_territories():
-    """
-    California IOU/POU electric service territory boundaries — CEC GIS Unit.
-    Pre-fetched from CEC ArcGIS ElectricLoadServingEntities_IOU_POU FeatureServer.
-    Credit: California Energy Commission, energy.ca.gov
-    """
-    df = pd.read_parquet(os.path.join(DATA_DIR, "lse_territories.parquet"))
-    return df.to_dict("records")
 
 summary_370, summary_245, hist_annual = load_forecast_data()
 county_df, tac_df, state_df, capacity_df = load_viz_data()
 ca_geojson = load_ca_geojson()
 tac_geojson = load_tac_geojson()
 transmission_lines = load_transmission_lines()
-lse_territories = load_lse_territories()
 
 # ---------------------------------------------------------------------------
 # LOAD RAG
@@ -450,8 +440,8 @@ with chat_col:
 # ── MAP (center) ──
 with map_col:
     year = st.session_state.get("explorer_year", 2030)
-    _gm = st.session_state.get("grid_mode", "County boundaries")
-    use_tac = _gm in ("LSE territories", "Both")
+    _gm = st.session_state.get("grid_mode", "County")
+    use_tac = _gm == "TAC areas"
 
     color_metric = st.session_state.get("map_color", "Growth vs 2025 (%)")
     if color_metric == "Growth vs 2025 (%)":
@@ -471,65 +461,7 @@ with map_col:
         color_range = None
 
     if use_tac:
-        # ── LSE territory choropleth — filled by TAC demand, black outlines ──
-        # Map every utility to its CAISO TAC
-        UTILITY_TAC = {
-            "Pacific Gas & Electric Company": "PGE",
-            "PacifiCorp": "PGE",
-            "Liberty Utilities": "PGE",
-            "Southern California Edison": "SCE",
-            "Bear Valley Electric Service": "SCE",
-            "San Diego Gas & Electric": "SDGE",
-            # POUs → TAC of their territory
-            "Los Angeles Department of Water & Power": "SCE",
-            "Sacramento Municipal Utility District": "PGE",
-            "City and County of San Francisco - Hetch Hetchy Water and Power": "PGE",
-            "Imperial Irrigation District": "SDGE",
-            "Turlock Irrigation District": "PGE",
-            "Modesto Irrigation District": "PGE",
-            "Merced Irrigation District": "PGE",
-            "Roseville Electric": "PGE",
-            "Silicon Valley Power": "PGE",
-            "City of Palo Alto": "PGE",
-            "Redding Electric Utility": "PGE",
-            "City of Healdsburg Electric Department": "PGE",
-            "Alameda Power & Telecom": "PGE",
-            "City of Pittsburg": "PGE",
-            "Port of Stockton": "PGE",
-            "Lodi Electric Utility": "PGE",
-            "Lathrop Irrigation District": "PGE",
-            "Lassen Municipal Utility District": "PGE",
-            "Trinity Public Utilities District": "PGE",
-            "City of Ukiah Electric Utilities Division": "PGE",
-            "City of Shasta Lake": "PGE",
-            "Biggs Municipal Utilities": "PGE",
-            "Gridley Electric Utility": "PGE",
-            "Truckee Donner Public Utilities District": "PGE",
-            "Kirkwood Meadows Public Utility District": "PGE",
-            "Shelter Cove Resort Improvement District": "PGE",
-            "Port of Oakland": "PGE",
-            "Power and Water Resource Pooling Authority": "SCE",
-            "Metropolitan Water District of So. Cal": "SCE",
-            "Burbank Water & Power": "SCE",
-            "Glendale Water & Power": "SCE",
-            "Pasadena Water & Power": "SCE",
-            "City of Anaheim Public Utilities Department": "SCE",
-            "City of Riverside": "SCE",
-            "City of Corona Department of Water & Power": "SCE",
-            "City of Vernon Municipal Light Department": "SCE",
-            "City of Cerritos": "SCE",
-            "City of Banning Electric Department": "SCE",
-            "City of Needles": "SCE",
-            "Rancho Cucamonga Municipal Utility": "SCE",
-            "Colton Electric Utility Department": "SCE",
-            "Moreno Valley Utility": "SCE",
-            "Eastside Power Authority": "SCE",
-            "Azusa Light & Power": "SCE",
-            "City of Industry": "SCE",
-            "Victorville Municipal Utilities Services": "SCE",
-            "City of Lompoc Electric Division": "SCE",
-        }
-
+        # ── TAC choropleth — 3 polygons, actual forecast data ──
         tac_data = tac_df[
             (tac_df["scenario"] == scenario_key) &
             (tac_df["year"] == year)
@@ -537,42 +469,11 @@ with map_col:
         tac_data[f"peak_{pct_key}_spread"] = tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
         if color_metric == "Growth vs 2025 (%)":
             tac_data[color_col] = tac_data[color_col].fillna(0)
-        tac_lookup = tac_data.set_index("tac")[color_col].to_dict()
-
-        # Build per-polygon dataframe for choropleth
-        lse_df = pd.DataFrame(lse_territories)[["utility", "type"]].drop_duplicates()
-        lse_df["tac"] = lse_df["utility"].map(UTILITY_TAC).fillna("PGE")
-        lse_df[color_col] = lse_df["tac"].map(tac_lookup)
-        lse_df = lse_df.dropna(subset=[color_col])
-
-        # Build per-polygon GeoJSON keyed by utility name
-        lse_poly_geojson = {
-            "type": "FeatureCollection",
-            "features": []
-        }
-        seen = set()
-        for poly in lse_territories:
-            util = poly["utility"]
-            if util in seen:
-                continue
-            seen.add(util)
-            lse_poly_geojson["features"].append({
-                "type": "Feature",
-                "id": util,
-                "properties": {"utility": util},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [list(zip(
-                        [float(x) for x in poly["lons"]],
-                        [float(y) for y in poly["lats"]]
-                    ))]
-                }
-            })
 
         fig_map = px.choropleth_mapbox(
-            lse_df,
-            geojson=lse_poly_geojson,
-            locations="utility",
+            tac_data,
+            geojson=tac_geojson,
+            locations="tac",
             color=color_col,
             color_continuous_scale=color_scale,
             range_color=color_range,
@@ -580,11 +481,22 @@ with map_col:
             zoom=4.8,
             center={"lat": 37.5, "lon": -119.5},
             opacity=0.8,
-            hover_name="utility",
-            hover_data={"utility": False, "type": True, color_col: ":.1f"},
-            labels={color_col: color_label, "type": "IOU/POU"},
+            hover_name="tac",
+            hover_data={
+                "tac": False,
+                color_col: False,
+                f"peak_{pct_key}_mean": ":.0f",
+                f"peak_{pct_key}_p10": ":.0f",
+                f"peak_{pct_key}_p90": ":.0f",
+            },
+            labels={
+                f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
+                f"peak_{pct_key}_p10": "10th Pct",
+                f"peak_{pct_key}_p90": "90th Pct",
+                color_col: color_label,
+            },
         )
-        fig_map.update_traces(marker_line_color="black", marker_line_width=0.8)
+        fig_map.update_traces(marker_line_color="black", marker_line_width=1.2)
 
         # keep map_data for tabs
         map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
@@ -694,7 +606,7 @@ with ctrl_col:
     st.markdown("**Grid lines**")
     grid_mode = st.radio(
         "Grid lines",
-        ["County boundaries", "LSE territories", "Both", "None"],
+        ["County", "TAC areas"],
         index=0,
         label_visibility="collapsed",
         key="grid_mode",
