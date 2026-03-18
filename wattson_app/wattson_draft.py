@@ -503,10 +503,9 @@ with map_col:
         color_range = None
 
     def dynamic_range(series):
-        """Min/max range from actual data, with small padding."""
-        lo, hi = float(series.min()), float(series.max())
-        pad = (hi - lo) * 0.05
-        return [lo - pad, hi + pad]
+        """Range from 0 to actual data max, with small padding."""
+        hi = float(series.max())
+        return [0, hi * 1.05]
 
     if use_tac:
         # ── TAC choropleth — 3 polygons, actual forecast data ──
