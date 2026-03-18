@@ -331,10 +331,21 @@ def load_transmission_lines():
     df = pd.read_parquet(os.path.join(DATA_DIR, "transmission_lines.parquet"))
     return df.to_dict("records")
 
+@st.cache_data
+def load_lse_territories():
+    """
+    California IOU/POU electric service territory boundaries — CEC GIS Unit.
+    Pre-fetched from CEC ArcGIS ElectricLoadServingEntities_IOU_POU FeatureServer.
+    Credit: California Energy Commission, energy.ca.gov
+    """
+    df = pd.read_parquet(os.path.join(DATA_DIR, "lse_territories.parquet"))
+    return df.to_dict("records")
+
 summary_370, summary_245, hist_annual = load_forecast_data()
 county_df, tac_df, state_df, capacity_df = load_viz_data()
 ca_geojson = load_ca_geojson()
 transmission_lines = load_transmission_lines()
+lse_territories = load_lse_territories()
 
 # ---------------------------------------------------------------------------
 # LOAD RAG
@@ -528,6 +539,39 @@ with map_col:
                 legendgroup="transmission",
             ))
 
+    # ── LSE territory boundaries ──
+    show_lse = st.session_state.get("layer_lse", False)
+    if show_lse and lse_territories:
+        # Color by IOU vs POU
+        lse_colors = {
+            "IOU": "rgba(90,170,232,0.55)",   # accent blue
+            "POU": "rgba(94,168,128,0.55)",   # green
+        }
+        lse_widths = {"IOU": 1.5, "POU": 1.2}
+
+        for lse_type, color in lse_colors.items():
+            bucket = [t for t in lse_territories if t["type"] == lse_type]
+            if not bucket:
+                continue
+            all_lons, all_lats, all_text = [], [], []
+            for poly in bucket:
+                label = poly["utility"]
+                all_lons.extend(list(poly["lons"]) + [None])
+                all_lats.extend(list(poly["lats"]) + [None])
+                all_text.extend([f"{label} ({lse_type})"] * len(poly["lons"]) + [None])
+
+            fig_map.add_trace(go.Scattermapbox(
+                lon=all_lons,
+                lat=all_lats,
+                mode="lines",
+                line=dict(color=color, width=lse_widths[lse_type]),
+                text=all_text,
+                hoverinfo="text",
+                name=f"{lse_type} territories",
+                showlegend=True,
+                legendgroup="lse",
+            ))
+
     st.plotly_chart(fig_map, use_container_width=True, key="county_map")
 
 # ── CONTROLS (right panel) ──
@@ -544,6 +588,25 @@ with ctrl_col:
     st.markdown("---")
     st.markdown("**Map layers**")
     show_transmission = st.checkbox("Transmission paths", value=True, key="layer_tx")
+
+    st.markdown("**Grid lines**")
+    grid_mode = st.radio(
+        "Grid lines",
+        ["County boundaries", "LSE territories", "Both", "None"],
+        index=0,
+        label_visibility="collapsed",
+        key="grid_mode",
+    )
+    # Apply grid_mode to session state flags consumed by overlays
+    _gm = st.session_state.get("grid_mode", "County boundaries")
+    # County boundaries are built into the choropleth — LSE is additive
+    # We expose show_lse to the overlay block via session state
+    if _gm == "LSE territories":
+        st.session_state["layer_lse"] = True
+    elif _gm == "Both":
+        st.session_state["layer_lse"] = True
+    else:
+        st.session_state["layer_lse"] = False
 
     st.markdown("---")
     st.markdown("**Chart layers**")
