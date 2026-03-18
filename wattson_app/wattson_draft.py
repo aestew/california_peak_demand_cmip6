@@ -82,7 +82,7 @@ h4, h5, h6, p, span, label {
   border-radius: 8px !important;
   color: var(--text-primary) !important;
   font-family: var(--sans) !important;
-  font-size: 13px !important;
+  font-size: 11px !important;
 }
 [data-testid="stSelectbox"] label {
   color: var(--text-dim) !important;
@@ -93,7 +93,12 @@ h4, h5, h6, p, span, label {
 }
 
 /* Radio */
-[data-testid="stRadio"] label { color: var(--text-body) !important; font-size: 13px !important; }
+[data-testid="stRadio"] label {
+  color: var(--text-body) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+}
 [data-testid="stRadio"] [data-testid="stMarkdownContainer"] p {
   color: var(--text-dim) !important;
   font-family: var(--mono) !important;
@@ -103,7 +108,12 @@ h4, h5, h6, p, span, label {
 }
 
 /* Checkboxes */
-[data-testid="stCheckbox"] label { color: var(--text-body) !important; font-size: 13px !important; }
+[data-testid="stCheckbox"] label {
+  color: var(--text-body) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+}
 
 /* Slider */
 [data-testid="stSlider"] label {
@@ -140,8 +150,14 @@ h4, h5, h6, p, span, label {
 }
 [data-testid="stChatMessage"] p {
   color: var(--text-body) !important;
-  font-size: 13.5px !important;
+  font-family: var(--sans) !important;
+  font-size: 12.5px !important;
   line-height: 1.65 !important;
+}
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] * {
+  font-family: var(--sans) !important;
+  font-size: 12.5px !important;
+  color: var(--text-body) !important;
 }
 [data-testid="stChatInputContainer"] textarea {
   background: var(--card-bg) !important;
@@ -149,10 +165,13 @@ h4, h5, h6, p, span, label {
   border-radius: 8px !important;
   color: var(--text-primary) !important;
   font-family: var(--sans) !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
 }
 [data-testid="stChatInputContainer"] textarea::placeholder {
   color: var(--text-faint) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
 }
 
 /* Info box */
@@ -371,16 +390,22 @@ st.caption(
 
 tc1, tc2 = st.columns([1.5, 1.5])
 with tc1:
-    scenario = st.selectbox("Scenario", ["SSP3-7.0", "SSP2-4.5"], index=0)
-    scenario_key = "ssp370" if scenario == "SSP3-7.0" else "ssp245"
+    pass
 with tc2:
-    peak_type = st.selectbox("Peak threshold", ["Top 1%", "Top 5%"], index=0)
-    pct_key = "1pct" if peak_type == "Top 1%" else "5pct"
+    pass
+
+# Derive scenario/peak from session state so map_col can read them
+# (ctrl_col sets the widgets but renders after map_col)
+_scenario_val = st.session_state.get("scenario_select", "High Emissions — 2.2–4.4°C warming (SSP3-7.0)")
+scenario_key = "ssp370" if "SSP3-7.0" in _scenario_val else "ssp245"
+_peak_val = st.session_state.get("peak_select", "Top 1%")
+pct_key = "1pct" if _peak_val == "Top 1%" else "5pct"
+peak_type = _peak_val
 
 # ═══════════════════════════════════════════════════════════════════════════
 # MAIN SECTION: CHAT (left) | MAP (center) | CONTROLS (right)
 # ═══════════════════════════════════════════════════════════════════════════
-chat_col, map_col, ctrl_col = st.columns([2, 3, 1.2], gap="medium")
+chat_col, map_col, ctrl_col = st.columns([1.8, 3.5, 1.2], gap="medium")
 
 # ── CHAT (left) ──
 with chat_col:
@@ -448,7 +473,13 @@ with map_col:
         color_col = f"peak_{pct_key}_pct_change_vs_2025"
         color_label = "Growth vs 2025 (%)"
         color_scale = "RdYlGn_r"
-        color_range = [-10, 50]
+        # Dynamic range: floor at -10, ceiling at actual data max
+        _growth_data = county_df[
+            (county_df["scenario"] == scenario_key) &
+            (county_df["year"] == year)
+        ][color_col].dropna()
+        _max_growth = float(_growth_data.max()) if len(_growth_data) else 50
+        color_range = [-10, max(_max_growth, 5)]
     elif color_metric == "Peak demand (MWh)":
         color_col = f"peak_{pct_key}_mean"
         color_label = f"{peak_type} Peak (MWh)"
@@ -590,6 +621,24 @@ with map_col:
 
 # ── CONTROLS (right panel) ──
 with ctrl_col:
+    scenario = st.selectbox(
+        "Emissions scenario",
+        [
+            "High Emissions — 2.2–4.4°C warming (SSP3-7.0)",
+            "Moderate Emissions — 1.7–3.0°C warming (SSP2-4.5)",
+        ],
+        index=0,
+        key="scenario_select",
+    )
+
+    peak_type_sel = st.selectbox(
+        "Predicted Peak Electricity Demand threshold",
+        ["Top 1%", "Top 5%"],
+        index=0,
+        key="peak_select",
+    )
+
+    st.markdown("---")
     st.markdown("**Map color**")
     color_choice = st.radio(
         "Color by",
