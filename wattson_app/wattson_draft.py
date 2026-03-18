@@ -349,6 +349,9 @@ def build_tac_geojson(_ca_geojson, county_tac):
             "geometry": mapping(dissolved),
         })
     return {"type": "FeatureCollection", "features": features}
+
+@st.cache_data
+def load_transmission_lines():
     """
     California electric transmission lines — CEC GIS Unit.
     Pre-fetched from CEC ArcGIS FeatureServer, operational lines only.
