@@ -174,7 +174,7 @@ h4 {
   letter-spacing: 0.04em !important;
 }
 
-/* Slider — hide label (year shown in value bubble), fix thumb on track */
+/* Slider — hide label, thumb above track */
 [data-testid="stSlider"] label {
   display: none !important;
 }
@@ -186,21 +186,21 @@ h4 {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
-[data-testid="stSlider"] [data-baseweb="slider"] > div {
-  align-items: center !important;
-}
-/* Thumb — sits exactly on the track */
 [data-testid="stSlider"] [role="slider"] {
-  margin-top: 0 !important;
-  top: auto !important;
-  transform: none !important;
+  top: -8px !important;
+  transform: translateX(-50%) !important;
 }
-/* Value label above thumb */
-[data-testid="stSlider"] [data-testid="stTickBarMin"],
-[data-testid="stSlider"] [data-testid="stTickBarMax"] {
+[data-testid="stTickBarMin"],
+[data-testid="stTickBarMax"] {
   font-family: var(--mono) !important;
   font-size: 10px !important;
   color: var(--text-dim) !important;
+}
+/* Align slider track to chart x-axis — matches l:60 r:10 plotly margins */
+.chart-slider-wrap {
+  padding-left: 68px !important;
+  padding-right: 18px !important;
+  margin-bottom: -12px !important;
 }
 
 /* Buttons — suggestion pills */
@@ -444,7 +444,7 @@ peak_type = "Top 1%"
 # ═══════════════════════════════════════════════════════════════════════════
 # MAIN SECTION: CHAT (left) | MAP (center) | CONTROLS (right)
 # ═══════════════════════════════════════════════════════════════════════════
-chat_col, map_col, ctrl_col = st.columns([1.8, 3.5, 1.2], gap="medium")
+chat_col, map_col, ctrl_col = st.columns([1.6, 4.0, 1.2], gap="medium")
 
 # ── CHAT (left) ──
 with chat_col:
@@ -630,7 +630,14 @@ with map_col:
     fig_map.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         height=480,
-        coloraxis_colorbar=dict(title=color_label, thickness=12, len=0.6, x=1.0),
+        coloraxis_colorbar=dict(
+            title=dict(text=color_label, side="right"),
+            thickness=10,
+            len=0.7,
+            x=1.01,
+            tickfont=dict(size=10),
+            titlefont=dict(size=10),
+        ),
         paper_bgcolor="rgba(0,0,0,0)",
     )
     if not use_tac:
@@ -843,7 +850,9 @@ fig_ts.update_layout(
 )
 
 with chart_col:
+    st.markdown('<div class="chart-slider-wrap">', unsafe_allow_html=True)
     year = st.slider("Year", min_value=2018, max_value=2040, value=2030, step=1, key="explorer_year")
+    st.markdown('</div>', unsafe_allow_html=True)
     st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
 
 with layer_col:
