@@ -174,45 +174,67 @@ h4 {
   letter-spacing: 0.04em !important;
 }
 
-/* Slider */
+/* ── Slider ─────────────────────────────────────────────────────────────
+ *  FIX: removed position:absolute / transform on [role="slider"] that
+ *  pinned the thumb to x=0 regardless of value.  Only style the colors
+ *  and the thumb-value label; let Baseui handle positioning.
+ * ──────────────────────────────────────────────────────────────────────*/
 [data-testid="stSlider"] label { display: none !important; }
-[data-testid="stSlider"] [role="slider"] {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translate(0%, -50%) !important;
-  margin: 0 !important;
-}
+
+/* Thumb value (year number above the dot) */
 [data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
-  top: -22px !important;
-  bottom: auto !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
   font-family: var(--mono) !important;
   font-size: 12px !important;
   font-weight: 700 !important;
   color: #E53935 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  white-space: nowrap !important;
 }
-/* Flip fill: gray = past (left), red = future (right) */
+
+/* Thumb dot — red */
+[data-testid="stSlider"] [role="slider"],
+[data-testid="stSlider"] [role="slider"]:focus {
+  background-color: #E53935 !important;
+  border-color: #E53935 !important;
+  box-shadow: 0 0 0 2px rgba(229,57,53,0.25) !important;
+}
+
+/* Track left of thumb  = past  (muted gray) */
 [data-testid="stSlider"] [data-baseweb="slider"] [role="progressbar"] {
   background-color: rgba(120,120,120,0.3) !important;
 }
-[data-testid="stSlider"] [data-baseweb="slider"] > div > div:last-child {
+
+/* Track right of thumb = future (red) */
+[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
   background-color: #E53935 !important;
 }
+
 [data-testid="stTickBarMin"],
 [data-testid="stTickBarMax"] {
   font-family: var(--mono) !important;
   font-size: 10px !important;
   color: var(--text-dim) !important;
 }
-/* Align slider track to chart x-axis — matches l:60 r:10 plotly margins */
+
+/*
+ * Align slider track width to Plotly chart x-axis.
+ *
+ * Plotly layout margins:  l = 60 px,  r = 10 px
+ * These are CSS-px inside the chart's own container.
+ * Streamlit wraps the chart in a container with its own padding
+ * (≈16px via .stElementContainer), but the slider sits inside
+ * the SAME column so it gets the same outer padding.  That means
+ * the only offset between "slider 0%" and "plot-area left edge"
+ * is the Plotly left margin (60px), minus the slider's own
+ * internal padding/thumb-half-width (~8px).
+ *
+ * Values below are empirically tuned for layout="wide" with
+ * chart margins l:60 r:10.  If you change the Plotly margins,
+ * update these to match.
+ */
 .chart-slider-wrap {
-  padding-left: 68px !important;
-  padding-right: 18px !important;
-  margin-bottom: -12px !important;
+  padding-left: 52px !important;
+  padding-right: 2px !important;
+  margin-top: -4px !important;
+  margin-bottom: 2px !important;
 }
 
 /* Buttons — suggestion pills */
@@ -534,7 +556,6 @@ with map_col:
         color_range = None  # computed dynamically below
     else:  # Peak demand
         if use_pct:
-            # % of 2025 baseline — normalizes LA vs Alpine
             color_col = "_peak_pct_of_2025"
             color_label = "Peak as % of 2025 baseline"
         else:
@@ -550,7 +571,6 @@ with map_col:
         return [lo, max(hi, 1.0)]
 
     if use_tac:
-        # ── TAC choropleth — 3 polygons, actual forecast data ──
         tac_data = tac_df[
             (tac_df["scenario"] == scenario_key) &
             (tac_df["year"] == year) &
@@ -592,12 +612,10 @@ with map_col:
         )
         fig_map.update_traces(marker_line_color="black", marker_line_width=1.2)
 
-        # keep map_data for tabs
         map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
         map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
 
     else:
-        # ── County choropleth ──
         map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
         map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
         map_data["_peak_pct_of_2025"] = (
@@ -753,6 +771,13 @@ show_capacity     = st.session_state.get("layer_cap", True)
 show_storage_fill = st.session_state.get("layer_fill", True)
 year = st.session_state.get("explorer_year", 2030)
 
+# ---------------------------------------------------------------------------
+# Chart x-axis range: fixed 2018-01-01 → 2040-12-31 so the plot-area edges
+# align exactly with the slider min (2018) and max (2040).
+# ---------------------------------------------------------------------------
+X_MIN_YEAR = 2018
+X_MAX_YEAR = 2040
+
 fig_ts = go.Figure()
 
 # Storage band fill
@@ -841,16 +866,22 @@ if show_historical:
         hovertemplate="<b>Historical</b><br>Year: %{x|%Y}<br>MWh: %{y:,.0f}<extra></extra>",
     ))
 
-# Vertical reference line
+# Vertical reference line at the slider year (mid-year so it hits the data points)
 fig_ts.add_vline(
     x=pd.Timestamp(f"{year}-07-01"),
     line_dash="solid", line_color="rgba(255, 255, 255, 0.35)", line_width=1.5,
 )
 
+# Lock x-axis so left edge = 2018-01-01, right edge = 2040-12-31.
+# This guarantees the plot area spans exactly the same domain as the
+# slider (2018 … 2040), so the slider thumb and the vline stay aligned.
 fig_ts.update_layout(
     xaxis_title="Year",
     yaxis_title="Peak Demand / Capacity (MWh / MW)",
-    xaxis=dict(tickfont=dict(size=14)),
+    xaxis=dict(
+        tickfont=dict(size=14),
+        range=[f"{X_MIN_YEAR}-01-01", f"{X_MAX_YEAR}-12-31"],
+    ),
     yaxis=dict(tickfont=dict(size=14)),
     hovermode="x unified",
     height=370,
@@ -862,8 +893,12 @@ fig_ts.update_layout(
 )
 
 with chart_col:
+    # Slider: padded to align with the Plotly plot area (l:60, r:10)
     st.markdown('<div class="chart-slider-wrap">', unsafe_allow_html=True)
-    year = st.slider("Year", min_value=2018, max_value=2040, value=2030, step=1, key="explorer_year")
+    year = st.slider(
+        "Year", min_value=X_MIN_YEAR, max_value=X_MAX_YEAR,
+        value=year, step=1, key="explorer_year",
+    )
     st.markdown('</div>', unsafe_allow_html=True)
     st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
 
