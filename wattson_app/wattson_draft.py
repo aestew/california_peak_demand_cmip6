@@ -226,8 +226,8 @@ h4 {
  * update these to match.
  */
 .chart-slider-wrap {
-  padding-left: 52px !important;
-  padding-right: 2px !important;
+  padding-left: 60px !important;
+  padding-right: 10px !important;
   margin-top: -4px !important;
   margin-bottom: 2px !important;
 }
@@ -861,21 +861,24 @@ if show_historical:
         hovertemplate="<b>Historical</b><br>Year: %{x|%Y}<br>MWh: %{y:,.0f}<extra></extra>",
     ))
 
-# Vertical reference line at the slider year (mid-year so it hits the data points)
+# Vertical reference line — placed at Jan 1 of the selected year so that
+# the line position = (year - 2018) / (2040 - 2018), matching the slider's
+# linear interpolation over the same integer range.
 fig_ts.add_vline(
-    x=pd.Timestamp(f"{year}-07-01"),
+    x=pd.Timestamp(f"{year}-01-01"),
     line_dash="solid", line_color="rgba(255, 255, 255, 0.35)", line_width=1.5,
 )
 
-# Lock x-axis so left edge = 2018-01-01, right edge = 2040-12-31.
-# This guarantees the plot area spans exactly the same domain as the
-# slider (2018 … 2040), so the slider thumb and the vline stay aligned.
+# Lock x-axis to [2018-01-01, 2040-01-01] — exactly 22 years, matching
+# the slider's 22 integer steps (2018 … 2040).  This ensures the linear
+# mapping is identical: fraction = (year − 2018) / 22 for both slider
+# thumb position and chart vline position.
 fig_ts.update_layout(
     xaxis_title="Year",
     yaxis_title="Peak Demand / Capacity (MWh / MW)",
     xaxis=dict(
         tickfont=dict(size=14),
-        range=[f"{X_MIN_YEAR}-01-01", f"{X_MAX_YEAR}-12-31"],
+        range=["2018-01-01", "2040-01-01"],
     ),
     yaxis=dict(tickfont=dict(size=14)),
     hovermode="x unified",
