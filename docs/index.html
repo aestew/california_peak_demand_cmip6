@@ -170,11 +170,12 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
   background: var(--card-bg); border: 1px solid var(--card-border);
   border-radius: 12px; padding: 28px 24px;
   backdrop-filter: blur(8px); transition: border-color .3s, transform .3s;
+  display: flex; flex-direction: column;
 }
 .pipeline-card:hover { border-color: var(--accent-border); transform: translateY(-2px); }
 .pipeline-step { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 12px; }
 .pipeline-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
-.pipeline-card p { font-size: 13.5px; font-weight: 300; color: var(--text-body); line-height: 1.6; }
+.pipeline-card p { font-size: 13.5px; font-weight: 300; color: var(--text-body); line-height: 1.6; flex: 1; }
 .pipeline-card .tech {
   font-family: var(--mono); font-size: 11px; color: var(--text-faint);
   margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
@@ -222,6 +223,28 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
 .cec-item:last-child { border-bottom: none; }
 .cec-item span { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
 
+/* CITATIONS */
+.citations-row {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+  align-items: flex-start;
+}
+.citations-label {
+  font-family: var(--mono); font-size: 10px; color: var(--text-faint);
+  letter-spacing: .08em; text-transform: uppercase;
+  padding-top: 2px; flex-shrink: 0;
+  margin-right: 4px;
+}
+.cite-tag {
+  font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+  background: rgba(14,28,26,.55); border: 1px solid var(--border);
+  border-radius: 4px; padding: 3px 9px; line-height: 1.5;
+  text-decoration: none; transition: border-color .2s, color .2s;
+  white-space: nowrap;
+}
+.cite-tag:hover { border-color: rgba(90,170,232,.35); color: var(--accent); }
+
 /* DATA POINTS */
 .data-points { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
 .data-point {
@@ -251,6 +274,13 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 .footer-links { display: flex; gap: 24px; }
 .footer-links a { font-size: 13px; color: var(--text-body); text-decoration: none; transition: color .2s; }
 .footer-links a:hover { color: var(--accent); }
+
+.github-link {
+  font-family: var(--mono); font-size: 12px; color: var(--accent);
+  text-decoration: none; opacity: .75; transition: opacity .2s;
+  white-space: nowrap;
+}
+.github-link:hover { opacity: 1; text-decoration: underline; }
 
 /* DIVIDER */
 .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--accent-border), transparent); margin: 0 auto; max-width: 400px; }
@@ -298,17 +328,17 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
   <div class="container">
     <div class="hero-label">Climate-Forward Electricity &amp; Adaptation Toolkit</div>
     <h1>Peak demand.<br><span class="dim">Projected.</span></h1>
-    <p class="hero-tagline">We forecast so California can build.</p>
+    <p class="hero-tagline">We forecast so California can prepare.</p>
     <p class="hero-sub">Dynamic, adjustable demand projections powered by state-of-the-art climate science. Built for the teams planning California's electric future.</p>
     <div class="hero-stats">
-      <div class="hero-stat"><div class="number">58</div><div class="label">California counties</div></div>
-      <div class="hero-stat"><div class="number">25</div><div class="label">Climate model<br>ensembles</div></div>
-      <div class="hero-stat"><div class="number">2.5km</div><div class="label">Spatial<br>resolution</div></div>
+      <div class="hero-stat"><div class="number">2</div><div class="label"> Climate<br>Futures</div></div>
+      <div class="hero-stat"><div class="number">39</div><div class="label"> Simulations <br>between each future</div></div>
+      <div class="hero-stat"><div class="number">1.5 mi</div><div class="label">Granularity<br></div></div>
       <div class="hero-stat"><div class="number">2040</div><div class="label">Forecast<br>horizon</div></div>
     </div>
     <div class="hero-ctas">
-      <a href="#demo" class="btn-primary">Explore Wattson →</a>
-      <a href="#methodology" class="btn-ghost">View methodology</a>
+      <a href="wattson_landing.html" class="btn-primary">Explore Wattson →</a>
+      <a href="#methodology" class="btn-ghost">How was this built?</a>
     </div>
   </div>
 </section>
@@ -318,29 +348,42 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 <section id="methodology">
   <div class="container">
     <div class="reveal">
-      <div class="section-label">Methodology</div>
-      <div class="section-title">Three-step inference pipeline</div>
-      <p class="section-desc">No published precedent exists for this approach. ClimateFEAT chains high-resolution reanalysis, statistical downscaling, and deep learning into a single pipeline from raw climate data to county-level peak demand projections.</p>
+      <div class="section-label">Why ClimateFEAT?</div>
+      <div class="section-title">Learning from every Californian's life.</div>
+      <p class="section-desc">Our model learns using <b>neighborhood-level data</b>, with <b>high-resolution models</b> reflecting hyper-local climate impacts to forecast California peak electricity demand. <br><a href="#" class="https://github.com/aestew/california_peak_demand_cmip6/tree/main/pipeline">See pipeline on GitHub →<br></a></p>
     </div>
     <div class="pipeline-grid">
       <div class="pipeline-card reveal">
-        <div class="pipeline-step">01 — Spatial foundation</div>
-        <h3>URMA reanalysis</h3>
-        <p>2.5 km gridded weather reanalysis provides the historical training foundation. Population-weighted using WorldPop to convert grid cells to county-level thermal exposure — capturing where people actually live, not just where weather stations sit.</p>
+        <div class="pipeline-step">01 — Learning from reality</div>
+        <h3>Your Weather Experience</h3>
+        <p>Using real-life hyper-local weather observations compiled by NOAA and synthesized by population, this model knows how Californians' unique weather experience impacts your electricity usage.</p>
         <div class="tech">URMA 2.5km · WorldPop · xarray · Dask</div>
       </div>
       <div class="pipeline-card reveal">
-        <div class="pipeline-step">02 — Climate projection</div>
-        <h3>LOCA2-Hybrid downscaling</h3>
-        <p>25 ensemble members across 7 CMIP6 global climate models, statistically downscaled to match URMA resolution. Two scenarios — SSP2-4.5 (moderate) and SSP3-7.0 (high warming) — provide the range of plausible futures through 2040.</p>
+        <div class="pipeline-step">02 — Climate futures</div>
+        <h3>Frontier Climate Forecasts</h3>
+        <p>Cutting-edge climate forecasts mapped for your experience. Helping Californians be prepared for the next 15 years through accounting for outcome probabilities. </p>
         <div class="tech">LOCA2-Hybrid · 7 GCMs · SSP2-4.5 · SSP3-7.0</div>
       </div>
       <div class="pipeline-card reveal">
         <div class="pipeline-step">03 — Demand forecasting</div>
-        <h3>Multi-stream transformer</h3>
-        <p>Five specialized input streams feed a two-phase attention architecture — within-stream self-attention captures domain patterns, then cross-stream attention learns how weather, infrastructure, and demographics interact to drive peak demand.</p>
-        <div class="tech">PyTorch · MLflow · county embeddings · 2-phase attention</div>
+        <h3>Five Sensing Layers</h3>
+        <p>Models calibrated to learn complex interactions between weather, location, and lived experiences to provide customizable demand outcomes.</p>
+        <div class="tech">Feature Streams · PyTorch · MLflow · county embeddings · 2-phase attention</div>
       </div>
+    </div>
+
+    <!-- Data citations -->
+    <div class="citations-row reveal">
+      <span class="citations-label">Data sources</span>
+      <a class="cite-tag" href="https://www.nco.ncep.noaa.gov/pmb/products/rtma/" target="_blank" rel="noopener">URMA · NOAA NCEP</a>
+      <a class="cite-tag" href="https://doi.org/10.1175/JHM-D-22-0194.1" target="_blank" rel="noopener">LOCA2-Hybrid · Pierce et al. 2023</a>
+      <a class="cite-tag" href="https://catalog.data.gov/dataset/hourly-electricity-demand-profiles-for-each-county-in-the-contiguous-united-states" target="_blank" rel="noopener">Electricity Demand · Data.gov</a>
+      <a class="cite-tag" href="https://www.datacenters.com/locations/united-states/california" target="_blank" rel="noopener">Data Centers · datacenters.com</a>
+      <a class="cite-tag" href="https://www.energy.ca.gov/files/zev-and-infrastructure-stats-data" target="_blank" rel="noopener">EV Population · CEC</a>
+      <a class="cite-tag" href="https://dof.ca.gov/forecasting/economics/" target="_blank" rel="noopener">Income · CA DOF</a>
+      <a class="cite-tag" href="https://dof.ca.gov/forecasting/demographics/estimates/" target="_blank" rel="noopener">Population · CA DOF</a>
+      <a class="cite-tag" href="https://globalenergymonitor.org/projects/global-power-plant-tracker/" target="_blank" rel="noopener">Global Power Plant Tracker · GEM Mar 2026</a>
     </div>
   </div>
 </section>
@@ -355,19 +398,19 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
     </div>
     <div class="arch-section">
       <div class="arch-text reveal">
-        <h3>Why multi-stream?</h3>
+        <h3>Why multiple sensing layers?</h3>
         <p>Peak electricity demand isn't driven by any single factor. It emerges from the interaction of extreme heat, population growth, EV adoption curves, datacenter buildout, and the built environment's thermal inertia.</p>
-        <p>The five-stream architecture treats each domain as a separate token sequence. County embeddings are prepended as learned context vectors, allowing the model to capture county-specific demand signatures that a flat feature vector would miss.</p>
+        <p>The five-stream sensing layer architecture treats each domain as a separate token sequence. County embeddings are prepended as learned context vectors, allowing the model to capture county-specific demand signatures that a flat feature vector would miss.</p>
         <p>Cross-stream attention then lets the model learn the interactions — how a heatwave's impact on demand differs in a county with high EV penetration versus one with expanding datacenter load.</p>
       </div>
       <div class="arch-detail reveal">
         <h4>Input streams</h4>
         <ul class="stream-list">
           <li><span class="dot"></span><div><span class="stream-name">Weather + Time</span> — Temperature, humidity, solar radiation, wind, temporal encoding</div></li>
-          <li><span class="dot"></span><div><span class="stream-name">Rolling + Time</span> — 3/7/14-day rolling aggregations capturing thermal accumulation</div></li>
+          <li><span class="dot"></span><div><span class="stream-name">Extended Weather Patterns + Time</span> — 3/7/14-day rolling aggregations capturing thermal accumulation</div></li>
           <li><span class="dot"></span><div><span class="stream-name">Geography / Demographics</span> — Population density, urban fraction, elevation, climate zone</div></li>
-          <li><span class="dot"></span><div><span class="stream-name">Heatwave</span> — Duration, intensity, and nighttime recovery metrics</div></li>
-          <li><span class="dot"></span><div><span class="stream-name">Infrastructure + EV + Time</span> — Datacenter capacity, BEV adoption trajectories, grid infrastructure</div></li>
+          <li><span class="dot"></span><div><span class="stream-name">Heatwave Patterns</span> — Duration, intensity, and nighttime recovery metrics</div></li>
+          <li><span class="dot"></span><div><span class="stream-name">Planning for a sustainable future</span> — Datacenter capacity, BEV adoption trajectories, grid infrastructure</div></li>
         </ul>
       </div>
     </div>
@@ -379,24 +422,24 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 <section id="results">
   <div class="container">
     <div class="reveal">
-      <div class="section-label">Results</div>
+      <div class="section-label">The nitty-gritty</div>
       <div class="section-title">Model performance</div>
-      <p class="section-desc">Trained on 2018–2021, validated on 2022, tested on the 2023 holdout year. The transformer beats the LightGBM baseline on test data where it matters most — unseen conditions.</p>
+      <p class="section-desc">Trained on 2018–2021, validated on 2022, tested on the 2023 holdout year. The transformer beats the LightGBM baseline on test data where it matters most — unseen conditions. <br><a href="#" class="https://github.com/aestew/california_peak_demand_cmip6/tree/main/models">See code on GitHub →<br></a></p>
     </div>
     <div class="results-grid reveal">
       <div class="result-card">
         <div class="model-name">Multi-stream transformer</div>
-        <div class="metric-row"><span class="metric-label">Validation MAE</span><span class="metric-value">145 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Validation MAPE</span><span class="metric-value">12.4%</span></div>
-        <div class="metric-row"><span class="metric-label">Test MAE</span><span class="metric-value highlight">184 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Test MAPE</span><span class="metric-value highlight">15.9%</span></div>
+        <div class="metric-row"><span class="metric-label">Validation RMSE</span><span class="metric-value">139 MWh</span></div>
+        <div class="metric-row"><span class="metric-label">Validation RMSE %</span><span class="metric-value">12.0%</span></div>
+        <div class="metric-row"><span class="metric-label">Test RMSE</span><span class="metric-value highlight">172 MWh</span></div>
+        <div class="metric-row"><span class="metric-label">Test RMSE %</span><span class="metric-value highlight">14.8%</span></div>
       </div>
       <div class="result-card">
         <div class="model-name" style="color:var(--green-muted)">LightGBM v4 baseline</div>
-        <div class="metric-row"><span class="metric-label">Validation MAE</span><span class="metric-value">141 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Validation MAPE</span><span class="metric-value">12.0%</span></div>
-        <div class="metric-row"><span class="metric-label">Test MAE</span><span class="metric-value">199 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Test MAPE</span><span class="metric-value">17.4%</span></div>
+        <div class="metric-row"><span class="metric-label">Validation RMSE</span><span class="metric-value">141 MWh</span></div>
+        <div class="metric-row"><span class="metric-label">Validation RMSE %</span><span class="metric-value">12.0%</span></div>
+        <div class="metric-row"><span class="metric-label">Test RMSE</span><span class="metric-value">199 MWh</span></div>
+        <div class="metric-row"><span class="metric-label">Test RMSE %</span><span class="metric-value">17.4%</span></div>
       </div>
     </div>
     <div class="comparison-note reveal">
@@ -448,11 +491,11 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
     <div class="reveal">
       <div class="section-label">Interactive app</div>
       <div class="section-title">Meet Wattson</div>
-      <p class="section-desc">Explore the forecasts yourself. Wattson is a Streamlit application with choropleth maps, time-series forecasts, and a RAG-powered chat interface backed by a 20-document corpus on California energy planning.</p>
+      <p class="section-desc">Explore the forecasts yourself. Wattson is a Streamlit application with choropleth maps, time-series forecasts, and a RAG-powered chat interface backed by a cited 20-document corpus on California energy planning.</p>
     </div>
     <div class="demo-features reveal">
       <div class="demo-feature"><h4>Choropleth map</h4><p>County-level peak demand visualized across California, with scenario and year selectors.</p></div>
-      <div class="demo-feature"><h4>Forecast time series</h4><p>Compare transformer projections against LightGBM and CEC baselines across SSP scenarios through 2040.</p></div>
+      <div class="demo-feature"><h4>Forecast time series</h4><p>Compare transformer projections against LightGBM and CEC baselines across SSP 245 (hot) and SSP 370 (hotter) scenarios through 2040.</p></div>
       <div class="demo-feature"><h4>RAG chat</h4><p>Ask questions about the methodology, data, or results. Powered by ChromaDB with 438 embedded chunks via Voyage AI.</p></div>
     </div>
     <div class="reveal">
