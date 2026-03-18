@@ -183,12 +183,15 @@ h4 {
   text-transform: uppercase !important;
 }
 [data-testid="stSlider"] [data-baseweb="slider"] {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
+  margin-top: 8px !important;
+}
+[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
 }
 [data-testid="stSlider"] [role="slider"] {
   top: 50% !important;
-  transform: translateY(-50%) !important;
+  transform: translate(-50%, -50%) !important;
 }
 
 /* Buttons — suggestion pills */
@@ -704,27 +707,23 @@ with ctrl_col:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# FORECAST CHART — full width
-# ═══════════════════════════════════════════════════════════════════════════
-# ═══════════════════════════════════════════════════════════════════════════
-# FORECAST CHART — full width with inline controls
+# FORECAST CHART
 # ═══════════════════════════════════════════════════════════════════════════
 st.divider()
 
-# Chart controls row — slider + layer toggles side by side
-chart_ctrl_left, chart_ctrl_right = st.columns([3, 1], gap="medium")
-with chart_ctrl_left:
-    year = st.slider("Year", min_value=2018, max_value=2040, value=2030, step=1, key="explorer_year")
-with chart_ctrl_right:
-    st.markdown("**Chart layers**")
-    show_historical = st.checkbox("Historical actuals", value=True, key="layer_hist")
-    show_ensemble = st.checkbox("Ensemble range", value=False, key="layer_ens")
-    show_capacity = st.checkbox("Capacity lines", value=True, key="layer_cap")
-    show_storage_fill = st.checkbox("Storage band", value=True, key="layer_fill")
+# Chart + layer controls side by side
+chart_col, layer_col = st.columns([5, 1], gap="medium")
 
 summary = summary_370 if scenario_key == "ssp370" else summary_245
 summary_other = summary_245 if scenario_key == "ssp370" else summary_370
 other_label = "SSP2-4.5" if scenario_key == "ssp370" else "SSP3-7.0"
+
+# Read chart layer flags from session state (widgets rendered after chart build)
+show_historical   = st.session_state.get("layer_hist", True)
+show_ensemble     = st.session_state.get("layer_ens", False)
+show_capacity     = st.session_state.get("layer_cap", True)
+show_storage_fill = st.session_state.get("layer_fill", True)
+year = st.session_state.get("explorer_year", 2030)
 
 fig_ts = go.Figure()
 
@@ -834,7 +833,16 @@ fig_ts.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
 )
 
-st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
+with chart_col:
+    year = st.slider("Year", min_value=2018, max_value=2040, value=2030, step=1, key="explorer_year")
+    st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
+
+with layer_col:
+    st.markdown("**Chart layers**")
+    show_historical = st.checkbox("Historical actuals", value=True, key="layer_hist")
+    show_ensemble = st.checkbox("Ensemble range", value=False, key="layer_ens")
+    show_capacity = st.checkbox("Capacity lines", value=True, key="layer_cap")
+    show_storage_fill = st.checkbox("Storage band", value=True, key="layer_fill")
 
 # ═══════════════════════════════════════════════════════════════════════════
 # TABLES
