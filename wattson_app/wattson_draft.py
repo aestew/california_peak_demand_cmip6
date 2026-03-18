@@ -176,12 +176,23 @@ h4 {
 
 /* Slider */
 [data-testid="stSlider"] label { display: none !important; }
-[data-testid="stSlider"] [data-testid="stSliderThumbValue"] { display: none !important; }
 [data-testid="stSlider"] [role="slider"] {
   position: absolute !important;
   top: 50% !important;
   transform: translate(-50%, -50%) !important;
   margin: 0 !important;
+}
+[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
+  top: 50% !important;
+  bottom: auto !important;
+  left: 18px !important;
+  transform: translateY(-50%) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  color: var(--accent) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
 }
 [data-testid="stTickBarMin"],
 [data-testid="stTickBarMax"] {
