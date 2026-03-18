@@ -210,22 +210,12 @@ h4 {
 }
 
 /*
- * Align slider track width to Plotly chart x-axis.
- *
- * Plotly layout margins:  l = 60 px,  r = 10 px
- * These are CSS-px inside the chart's own container.
- * Streamlit wraps the chart in a container with its own padding
- * (≈16px via .stElementContainer), but the slider sits inside
- * the SAME column so it gets the same outer padding.  That means
- * the only offset between "slider 0%" and "plot-area left edge"
- * is the Plotly left margin (60px), minus the slider's own
- * internal padding/thumb-half-width (~8px).
- *
- * Values below are empirically tuned for layout="wide" with
- * chart margins l:60 r:10.  If you change the Plotly margins,
- * update these to match.
+ * Slider ↔ chart alignment.
+ * Initial padding via CSS; JS fine-tunes after the Plotly chart renders
+ * by measuring the actual plot area rect.  Target the stSlider directly
+ * since the st.markdown wrapper trick doesn't actually wrap anything.
  */
-.chart-slider-wrap {
+[data-testid="stSlider"] {
   padding-left: 60px !important;
   padding-right: 10px !important;
   margin-top: -4px !important;
@@ -891,14 +881,48 @@ fig_ts.update_layout(
 )
 
 with chart_col:
-    # Slider: padded to align with the Plotly plot area (l:60, r:10)
-    st.markdown('<div class="chart-slider-wrap">', unsafe_allow_html=True)
     year = st.slider(
         "Year", min_value=X_MIN_YEAR, max_value=X_MAX_YEAR,
         value=year, step=1, key="explorer_year",
     )
-    st.markdown('</div>', unsafe_allow_html=True)
     st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
+
+    # JS: measure the Plotly plot area and align the slider track to it.
+    # Runs after each Streamlit render.  Polls until both elements exist.
+    st.markdown("""
+    <script>
+    (function alignSliderToPlotArea() {
+        function tryAlign() {
+            // Plotly plot area — the invisible drag rect that covers exactly the data region
+            var plotArea = document.querySelector('[key="forecast_chart"] .nsewdrag, .nsewdrag');
+            var slider  = document.querySelector('[data-testid="stSlider"]');
+            if (!plotArea || !slider) return false;
+
+            var plotRect   = plotArea.getBoundingClientRect();
+            var sliderRect = slider.getBoundingClientRect();
+
+            // How much padding the slider needs so its content box (= track)
+            // spans exactly the same horizontal extent as the plot area.
+            var padLeft  = plotRect.left - sliderRect.left;
+            var padRight = sliderRect.right - plotRect.right;
+
+            // Clamp to sane values (never negative)
+            padLeft  = Math.max(0, padLeft);
+            padRight = Math.max(0, padRight);
+
+            slider.style.setProperty('padding-left',  padLeft  + 'px', 'important');
+            slider.style.setProperty('padding-right', padRight + 'px', 'important');
+            return true;
+        }
+
+        var attempts = 0;
+        var interval = setInterval(function() {
+            attempts++;
+            if (tryAlign() || attempts > 50) clearInterval(interval);
+        }, 100);
+    })();
+    </script>
+    """, unsafe_allow_html=True)
 
 with layer_col:
     st.markdown("**Chart layers**")
