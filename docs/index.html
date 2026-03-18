@@ -181,6 +181,34 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
   margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
 }
 
+/* CITATIONS */
+.citations-row {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+  align-items: flex-start;
+}
+.citations-label {
+  font-family: var(--mono); font-size: 10px; color: var(--text-faint);
+  letter-spacing: .08em; text-transform: uppercase;
+  padding-top: 2px; flex-shrink: 0; margin-right: 4px;
+}
+.cite-tag {
+  font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+  background: rgba(14,28,26,.55); border: 1px solid var(--border);
+  border-radius: 4px; padding: 3px 9px; line-height: 1.5;
+  text-decoration: none; transition: border-color .2s, color .2s;
+  white-space: nowrap;
+}
+.cite-tag:hover { border-color: rgba(90,170,232,.35); color: var(--accent); }
+
+.github-link {
+  font-family: var(--mono); font-size: 12px; color: var(--accent);
+  text-decoration: none; opacity: .75; transition: opacity .2s;
+  white-space: nowrap;
+}
+.github-link:hover { opacity: 1; text-decoration: underline; }
+
 /* ARCHITECTURE */
 .arch-section { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
 .arch-text h3 { font-family: var(--serif); font-size: 24px; font-weight: 600; margin-bottom: 14px; }
@@ -223,28 +251,6 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
 .cec-item:last-child { border-bottom: none; }
 .cec-item span { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
 
-/* CITATIONS */
-.citations-row {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  margin-top: 20px; padding-top: 20px;
-  border-top: 1px solid var(--border);
-  align-items: flex-start;
-}
-.citations-label {
-  font-family: var(--mono); font-size: 10px; color: var(--text-faint);
-  letter-spacing: .08em; text-transform: uppercase;
-  padding-top: 2px; flex-shrink: 0;
-  margin-right: 4px;
-}
-.cite-tag {
-  font-family: var(--mono); font-size: 11px; color: var(--text-dim);
-  background: rgba(14,28,26,.55); border: 1px solid var(--border);
-  border-radius: 4px; padding: 3px 9px; line-height: 1.5;
-  text-decoration: none; transition: border-color .2s, color .2s;
-  white-space: nowrap;
-}
-.cite-tag:hover { border-color: rgba(90,170,232,.35); color: var(--accent); }
-
 /* DATA POINTS */
 .data-points { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
 .data-point {
@@ -274,13 +280,6 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 .footer-links { display: flex; gap: 24px; }
 .footer-links a { font-size: 13px; color: var(--text-body); text-decoration: none; transition: color .2s; }
 .footer-links a:hover { color: var(--accent); }
-
-.github-link {
-  font-family: var(--mono); font-size: 12px; color: var(--accent);
-  text-decoration: none; opacity: .75; transition: opacity .2s;
-  white-space: nowrap;
-}
-.github-link:hover { opacity: 1; text-decoration: underline; }
 
 /* DIVIDER */
 .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--accent-border), transparent); margin: 0 auto; max-width: 400px; }
@@ -328,7 +327,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
   <div class="container">
     <div class="hero-label">Climate-Forward Electricity &amp; Adaptation Toolkit</div>
     <h1>Peak demand.<br><span class="dim">Projected.</span></h1>
-    <p class="hero-tagline">We forecast so California can prepare.</p>
+    <p class="hero-tagline">We forecast so California can build.</p>
     <p class="hero-sub">Dynamic, adjustable demand projections powered by state-of-the-art climate science. Built for the teams planning California's electric future.</p>
     <div class="hero-stats">
       <div class="hero-stat"><div class="number">2</div><div class="label"> Climate<br>Futures</div></div>
@@ -350,7 +349,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
     <div class="reveal">
       <div class="section-label">Why ClimateFEAT?</div>
       <div class="section-title">Learning from every Californian's life.</div>
-      <p class="section-desc">Our model learns using <b>neighborhood-level data</b>, with <b>high-resolution models</b> reflecting hyper-local climate impacts to forecast California peak electricity demand. <br><a href="#" class="https://github.com/aestew/california_peak_demand_cmip6/tree/main/pipeline">See pipeline on GitHub →<br></a></p>
+      <p class="section-desc">Our model learns using <b>neighborhood-level data</b>, with <b>high-resolution models</b> reflecting hyper-local climate impacts to forecast California peak electricity demand. <a href="https://github.com/aestew/california_peak_demand_cmip6/tree/main/pipeline" class="github-link">See pipeline on GitHub →</a></p>
     </div>
     <div class="pipeline-grid">
       <div class="pipeline-card reveal">
@@ -424,7 +423,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
     <div class="reveal">
       <div class="section-label">The nitty-gritty</div>
       <div class="section-title">Model performance</div>
-      <p class="section-desc">Trained on 2018–2021, validated on 2022, tested on the 2023 holdout year. The transformer beats the LightGBM baseline on test data where it matters most — unseen conditions. <br><a href="#" class="https://github.com/aestew/california_peak_demand_cmip6/tree/main/models">See code on GitHub →<br></a></p>
+      <p class="section-desc">Trained on 2018–2021, validated on 2022, tested on the 2023 holdout year. The transformer beats the LightGBM baseline on test data where it matters most — unseen conditions. <a href="https://github.com/aestew/california_peak_demand_cmip6/tree/main/models" class="github-link">See code on GitHub →</a></p>
     </div>
     <div class="results-grid reveal">
       <div class="result-card">
