@@ -322,7 +322,33 @@ def load_ca_geojson():
     return {"type": "FeatureCollection", "features": ca_features}
 
 @st.cache_data
-def load_transmission_lines():
+def build_tac_geojson(_ca_geojson, county_tac):
+    """
+    Dissolve county polygons into TAC territory polygons using shapely.
+    Returns a GeoJSON FeatureCollection keyed by TAC name.
+    """
+    from shapely.geometry import shape, mapping
+    from shapely.ops import unary_union
+
+    tac_shapes = {}
+    for feature in _ca_geojson["features"]:
+        county = feature["properties"].get("NAME", "")
+        tac = county_tac.get(county, "Other")
+        geom = shape(feature["geometry"])
+        if tac not in tac_shapes:
+            tac_shapes[tac] = []
+        tac_shapes[tac].append(geom)
+
+    features = []
+    for tac, geoms in tac_shapes.items():
+        dissolved = unary_union(geoms)
+        features.append({
+            "type": "Feature",
+            "id": tac,
+            "properties": {"TAC": tac},
+            "geometry": mapping(dissolved),
+        })
+    return {"type": "FeatureCollection", "features": features}
     """
     California electric transmission lines — CEC GIS Unit.
     Pre-fetched from CEC ArcGIS FeatureServer, operational lines only.
@@ -344,6 +370,7 @@ def load_lse_territories():
 summary_370, summary_245, hist_annual = load_forecast_data()
 county_df, tac_df, state_df, capacity_df = load_viz_data()
 ca_geojson = load_ca_geojson()
+tac_geojson = build_tac_geojson(ca_geojson, COUNTY_TAC)
 transmission_lines = load_transmission_lines()
 lse_territories = load_lse_territories()
 
@@ -443,8 +470,8 @@ with chat_col:
 # ── MAP (center) ──
 with map_col:
     year = st.session_state.get("explorer_year", 2030)
-    map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
-    map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
+    _gm = st.session_state.get("grid_mode", "County boundaries")
+    use_tac = _gm in ("LSE territories", "Both")
 
     color_metric = st.session_state.get("map_color", "Growth vs 2025 (%)")
     if color_metric == "Growth vs 2025 (%)":
@@ -452,7 +479,6 @@ with map_col:
         color_label = "Growth vs 2025 (%)"
         color_scale = "RdYlGn_r"
         color_range = [-10, 50]
-        map_data[color_col] = map_data[color_col].fillna(0)
     elif color_metric == "Peak demand (MWh)":
         color_col = f"peak_{pct_key}_mean"
         color_label = f"{peak_type} Peak (MWh)"
@@ -464,38 +490,87 @@ with map_col:
         color_scale = "Purples"
         color_range = None
 
-    fig_map = px.choropleth_mapbox(
-        map_data,
-        geojson=ca_geojson,
-        locations="fips",
-        color=color_col,
-        color_continuous_scale=color_scale,
-        range_color=color_range,
-        mapbox_style="carto-darkmatter",
-        zoom=4.8,
-        center={"lat": 37.5, "lon": -119.5},
-        opacity=0.8,
-        hover_name="county",
-        hover_data={
-            "fips": False,
-            color_col: False,
-            f"peak_{pct_key}_mean": ":.0f",
-            f"peak_{pct_key}_p10": ":.0f",
-            f"peak_{pct_key}_p90": ":.0f",
-            f"peak_{pct_key}_pct_change_vs_2025": ":.1f",
-            "tac_area": True,
-            "peak_month_mode": ":.0f",
-        },
-        labels={
-            f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
-            f"peak_{pct_key}_p10": "10th Pct",
-            f"peak_{pct_key}_p90": "90th Pct",
-            f"peak_{pct_key}_pct_change_vs_2025": "Growth vs 2025 (%)",
-            "tac_area": "TAC Area",
-            "peak_month_mode": "Peak Month",
-            color_col: color_label,
-        },
-    )
+    if use_tac:
+        # ── TAC choropleth ──
+        caiso_tacs = ["PGE", "SCE", "SDGE"]
+        tac_data = tac_df[
+            (tac_df["scenario"] == scenario_key) &
+            (tac_df["year"] == year)
+        ].copy()
+        # spread col
+        tac_data[f"peak_{pct_key}_spread"] = tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
+        if color_metric == "Growth vs 2025 (%)":
+            tac_data[color_col] = tac_data[color_col].fillna(0)
+
+        fig_map = px.choropleth_mapbox(
+            tac_data,
+            geojson=tac_geojson,
+            locations="tac",
+            color=color_col,
+            color_continuous_scale=color_scale,
+            range_color=color_range,
+            mapbox_style="carto-darkmatter",
+            zoom=4.8,
+            center={"lat": 37.5, "lon": -119.5},
+            opacity=0.8,
+            hover_name="tac",
+            hover_data={
+                "tac": False,
+                color_col: False,
+                f"peak_{pct_key}_mean": ":.0f",
+                f"peak_{pct_key}_p10": ":.0f",
+                f"peak_{pct_key}_p90": ":.0f",
+            },
+            labels={
+                f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
+                f"peak_{pct_key}_p10": "10th Pct",
+                f"peak_{pct_key}_p90": "90th Pct",
+                color_col: color_label,
+            },
+        )
+        # keep map_data defined for Top 15 Counties tab
+        map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
+        map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
+
+    else:
+        # ── County choropleth ──
+        map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
+        map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
+        if color_metric == "Growth vs 2025 (%)":
+            map_data[color_col] = map_data[color_col].fillna(0)
+
+        fig_map = px.choropleth_mapbox(
+            map_data,
+            geojson=ca_geojson,
+            locations="fips",
+            color=color_col,
+            color_continuous_scale=color_scale,
+            range_color=color_range,
+            mapbox_style="carto-darkmatter",
+            zoom=4.8,
+            center={"lat": 37.5, "lon": -119.5},
+            opacity=0.8,
+            hover_name="county",
+            hover_data={
+                "fips": False,
+                color_col: False,
+                f"peak_{pct_key}_mean": ":.0f",
+                f"peak_{pct_key}_p10": ":.0f",
+                f"peak_{pct_key}_p90": ":.0f",
+                f"peak_{pct_key}_pct_change_vs_2025": ":.1f",
+                "tac_area": True,
+                "peak_month_mode": ":.0f",
+            },
+            labels={
+                f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
+                f"peak_{pct_key}_p10": "10th Pct",
+                f"peak_{pct_key}_p90": "90th Pct",
+                f"peak_{pct_key}_pct_change_vs_2025": "Growth vs 2025 (%)",
+                "tac_area": "TAC Area",
+                "peak_month_mode": "Peak Month",
+                color_col: color_label,
+            },
+        )
     fig_map.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         height=480,
