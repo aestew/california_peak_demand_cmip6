@@ -1,5 +1,5 @@
 """
-wattson_draft.py — ClimateFEAT Explorer (main app)
+wattson_draft.py -- ClimateFEAT Explorer (main app)
 
 Lives at: wattson_app/wattson_draft.py
 Data at:  wattson_app/data/
@@ -15,10 +15,10 @@ import plotly.graph_objects as go
 import plotly.express as px
 from urllib.request import urlopen
 
-st.set_page_config(page_title="ClimateFEAT Explorer", page_icon="🌡️", layout="wide")
+st.set_page_config(page_title="ClimateFEAT Explorer", page_icon="\U0001f321\ufe0f", layout="wide")
 
 # ---------------------------------------------------------------------------
-# DESIGN SYSTEM — matches index.html / wattson_landing.html
+# DESIGN SYSTEM
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -41,7 +41,6 @@ st.markdown("""
   --serif:         'Literata', Georgia, serif;
 }
 
-/* App shell */
 .stApp {
   background: linear-gradient(180deg,
     #080E18 0%, #0A1520 8%, #0C1822 20%,
@@ -52,15 +51,12 @@ st.markdown("""
   color: var(--text-primary) !important;
 }
 
-/* Typography */
 h1, h2, h3 {
   font-family: var(--serif) !important;
   color: var(--text-primary) !important;
   letter-spacing: -0.025em !important;
 }
-h4, h5, h6, p, span, label {
-  font-family: var(--sans) !important;
-}
+h4, h5, h6, p, span, label { font-family: var(--sans) !important; }
 h4 {
   font-family: var(--serif) !important;
   font-size: 15px !important;
@@ -69,18 +65,12 @@ h4 {
   letter-spacing: -0.01em !important;
   line-height: 1.4 !important;
 }
-/* Tighten header spacing */
 .stApp h1 {
   font-size: clamp(28px, 3vw, 40px) !important;
   font-weight: 700 !important;
   margin-bottom: 0 !important;
 }
-[data-testid="stCaptionContainer"] {
-  margin-top: 2px !important;
-  margin-bottom: 8px !important;
-}
-
-/* Caption — mono uppercase like website eyebrow */
+[data-testid="stCaptionContainer"] { margin-top: 2px !important; margin-bottom: 8px !important; }
 [data-testid="stCaptionContainer"] p {
   font-family: var(--mono) !important;
   font-size: 11px !important;
@@ -106,22 +96,7 @@ h4 {
   text-transform: uppercase !important;
 }
 
-/* Radio */
-[data-testid="stRadio"] label {
-  color: var(--text-body) !important;
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-  letter-spacing: 0.05em !important;
-}
-[data-testid="stRadio"] [data-testid="stMarkdownContainer"] p {
-  color: var(--text-dim) !important;
-  font-family: var(--mono) !important;
-  font-size: 10px !important;
-  letter-spacing: 0.07em !important;
-  text-transform: uppercase !important;
-}
-
-/* Checkboxes — high specificity to override Streamlit defaults */
+/* Checkboxes */
 [data-testid="stCheckbox"] label,
 [data-testid="stCheckbox"] label span,
 [data-testid="stCheckbox"] label p {
@@ -133,12 +108,12 @@ h4 {
   line-height: 1.4 !important;
 }
 
-/* Hide double_arrow_right fallback text on chat submit button */
+/* Chat submit button icon fix */
 [data-testid="stChatInputContainer"] button span[data-testid="stIconMaterial"] { display: none !important; }
 [data-testid="stChatInputContainer"] button { font-size: 0 !important; }
 [data-testid="stChatInputContainer"] button svg { display: block !important; font-size: initial !important; }
 
-/* Chat messages — broad targeting */
+/* Chat messages */
 [data-testid="stChatMessage"] {
   background: var(--card-bg) !important;
   border: 1px solid var(--card-border) !important;
@@ -174,47 +149,30 @@ h4 {
   letter-spacing: 0.04em !important;
 }
 
-/* ── Slider ─────────────────────────────────────────────────────────────
- *  FIX: removed position:absolute / transform on [role="slider"] that
- *  pinned the thumb to x=0 regardless of value.  Only style the colors
- *  and the thumb-value label; let Baseui handle positioning.
- * ──────────────────────────────────────────────────────────────────────*/
+/* Slider */
 [data-testid="stSlider"] label { display: none !important; }
-
-/* Thumb value (year number above the dot) */
 [data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
   font-family: var(--mono) !important;
   font-size: 12px !important;
   font-weight: 700 !important;
   color: #E53935 !important;
 }
-
-/* Thumb dot — red */
 [data-testid="stSlider"] [role="slider"],
 [data-testid="stSlider"] [role="slider"]:focus {
   background-color: #E53935 !important;
   border-color: #E53935 !important;
   box-shadow: 0 0 0 2px rgba(229,57,53,0.25) !important;
 }
-
-/* Track filled portion (left of thumb) — red */
 [data-testid="stSlider"] [data-baseweb="slider"] [role="progressbar"] {
   background-color: #E53935 !important;
 }
-
 [data-testid="stTickBarMin"],
 [data-testid="stTickBarMax"] {
   font-family: var(--mono) !important;
   font-size: 10px !important;
   color: var(--text-dim) !important;
 }
-
-/*
- * Slider ↔ chart alignment.
- * Initial padding via CSS; JS fine-tunes after the Plotly chart renders
- * by measuring the actual plot area rect.  Target the stSlider directly
- * since the st.markdown wrapper trick doesn't actually wrap anything.
- */
+/* CSS fallback for slider alignment; JS overrides after render */
 [data-testid="stSlider"] {
   padding-left: 60px !important;
   padding-right: 10px !important;
@@ -222,7 +180,7 @@ h4 {
   margin-bottom: 2px !important;
 }
 
-/* Buttons — suggestion pills */
+/* Buttons */
 .stButton > button {
   background: var(--card-bg) !important;
   border: 1px solid var(--card-border) !important;
@@ -290,7 +248,6 @@ h4 {
   border-bottom: 1px solid var(--border) !important;
 }
 
-/* Divider */
 hr {
   border: none !important;
   height: 1px !important;
@@ -298,7 +255,6 @@ hr {
   margin: 8px auto !important;
 }
 
-/* Markdown bold labels in right panel */
 [data-testid="stMarkdownContainer"] strong {
   color: var(--accent) !important;
   font-family: var(--mono) !important;
@@ -307,7 +263,6 @@ hr {
   text-transform: uppercase !important;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
@@ -407,17 +362,11 @@ def load_ca_geojson():
 
 @st.cache_data
 def load_tac_geojson():
-    """Pre-built TAC GeoJSON — counties dissolved into PGE/SCE/SDGE territories."""
     with open(os.path.join(DATA_DIR, "tac_geojson.json")) as f:
         return json.load(f)
 
 @st.cache_data
 def load_transmission_lines():
-    """
-    California electric transmission lines — CEC GIS Unit.
-    Pre-fetched from CEC ArcGIS FeatureServer, operational lines only.
-    Credit: California Energy Commission, energy.ca.gov
-    """
     df = pd.read_parquet(os.path.join(DATA_DIR, "transmission_lines.parquet"))
     return df.to_dict("records")
 
@@ -445,89 +394,64 @@ except Exception:
     pass
 
 # ---------------------------------------------------------------------------
-# HEADER + TOP CONTROLS
+# HEADER
 # ---------------------------------------------------------------------------
 st.title("ClimateFEAT Explorer")
 st.caption(
-    "Climate-informed peak electricity demand projections for California — "
-    "58 counties · 2018–2040 · CMIP6 ensemble uncertainty"
+    "Climate-informed peak electricity demand projections for California "
+    "// 58 counties // 2018-2040 // CMIP6 ensemble uncertainty"
 )
 
-# Derive scenario/peak from session state so map_col can read them
-# (ctrl_col sets the widgets but renders after map_col)
-_scenario_val = st.session_state.get("scenario_select", "High Emissions — 2.2–4.4°C warming (SSP3-7.0)")
-scenario_key = "ssp370" if "SSP3-7.0" in _scenario_val else "ssp245"
+# =====================================================================
+# TOP CONTROLS -- single row of dropdowns
+# =====================================================================
+c1, c2, c3, c4 = st.columns(4, gap="medium")
+
+with c1:
+    scenario = st.selectbox(
+        "Emissions scenario",
+        ["High Emissions (SSP3-7.0)", "Moderate Emissions (SSP2-4.5)"],
+        index=0,
+        key="scenario_select",
+    )
+
+with c2:
+    color_metric = st.selectbox(
+        "Map shading",
+        ["Growth vs 2025", "Peak demand"],
+        index=0,
+        key="map_color",
+    )
+
+with c3:
+    color_view = st.selectbox(
+        "Units",
+        ["% change", "Absolute (MWh)"],
+        index=0,
+        key="map_color_view",
+    )
+
+with c4:
+    grid_mode = st.selectbox(
+        "Boundaries",
+        ["County", "TAC areas"],
+        index=0,
+        key="grid_mode",
+    )
+
+scenario_key = "ssp370" if "SSP3-7.0" in scenario else "ssp245"
 pct_key = "1pct"
 peak_type = "Top 1%"
 
-# ═══════════════════════════════════════════════════════════════════════════
-# MAIN SECTION: CHAT (left) | MAP (center) | CONTROLS (right)
-# ═══════════════════════════════════════════════════════════════════════════
-chat_col, map_col, ctrl_col = st.columns([1.6, 4.0, 1.2], gap="medium")
+# =====================================================================
+# MAIN SECTION:  MAP (left)  |  CHAT (right)  --  50 / 50
+# =====================================================================
+map_col, chat_col = st.columns([1, 1], gap="medium")
 
-# ── CHAT (left) ──
-with chat_col:
-    st.markdown("#### Learn about the ClimateFEAT model, outcomes and comparison to CEC models")
-
-    if not rag_available:
-        st.info("RAG unavailable — set API keys in Streamlit Secrets.")
-    else:
-        temp_year = st.session_state.get("explorer_year", 2030)
-        temp_map = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == temp_year)]
-        top_county = temp_map.nlargest(1, f"peak_{pct_key}_mean").iloc[0]["county"] if len(temp_map) > 0 else "Los Angeles"
-
-        suggestions = [
-            f"What drives demand in {top_county}?",
-            "ClimateFEAT vs CEC comparison?",
-            "SCE capacity margin?",
-            "Why do SSPs converge?",
-        ]
-        s1, s2 = st.columns(2)
-        with s1:
-            if st.button(suggestions[0], key="sug_0", use_container_width=True):
-                st.session_state["explorer_input"] = suggestions[0]
-            if st.button(suggestions[2], key="sug_2", use_container_width=True):
-                st.session_state["explorer_input"] = suggestions[2]
-        with s2:
-            if st.button(suggestions[1], key="sug_1", use_container_width=True):
-                st.session_state["explorer_input"] = suggestions[1]
-            if st.button(suggestions[3], key="sug_3", use_container_width=True):
-                st.session_state["explorer_input"] = suggestions[3]
-
-        if "explorer_messages" not in st.session_state:
-            st.session_state.explorer_messages = []
-
-        if st.session_state.explorer_messages:
-            chat_container = st.container(height=400)
-            with chat_container:
-                for msg in st.session_state.explorer_messages:
-                    with st.chat_message(msg["role"]):
-                        st.markdown(msg["content"])
-        else:
-            chat_container = st.container()
-
-        user_input = st.chat_input("Ask about projections, capacity, methodology...", key="explorer_chat")
-        prefill = st.session_state.pop("explorer_input", None)
-        prompt = prefill or user_input
-
-        if prompt:
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            with st.chat_message("assistant"):
-                    with st.spinner("Searching corpus..."):
-                        chunks = retrieve(prompt, collection, None)
-                        answer = generate_answer(prompt, chunks)
-                    st.markdown(answer)
-            st.session_state.explorer_messages.append({"role": "assistant", "content": answer})
-
-# ── MAP (center) ──
+# -- MAP --
 with map_col:
     year = st.session_state.get("explorer_year", 2030)
-    _gm = st.session_state.get("grid_mode", "County")
-    use_tac = _gm == "TAC areas"
-
-    color_metric = st.session_state.get("map_color", "Growth vs 2025")
-    color_view = st.session_state.get("map_color_view", "% change")
+    use_tac = grid_mode == "TAC areas"
     use_pct = color_view == "% change"
 
     if color_metric == "Growth vs 2025":
@@ -538,32 +462,35 @@ with map_col:
             color_col = f"peak_{pct_key}_delta_vs_2025"
             color_label = "Growth vs 2025 (MWh)"
         color_scale = "RdYlGn_r"
-        color_range = None  # computed dynamically below
-    else:  # Peak demand
+        color_range = None
+    else:
         if use_pct:
             color_col = "_peak_pct_of_2025"
             color_label = "Peak as % of 2025 baseline"
         else:
             color_col = f"peak_{pct_key}_mean"
-            color_label = f"Peak demand (MWh)"
+            color_label = "Peak demand (MWh)"
         color_scale = "YlOrRd"
         color_range = None
 
     def dynamic_range(series):
-        """Dynamic range. For growth metrics: 0-anchored. For absolute: min to max."""
         lo = min(0.0, float(series.min()))
         hi = max(0.0, float(series.max())) * 1.05
         return [lo, max(hi, 1.0)]
 
     if use_tac:
         tac_data = tac_df[
-            (tac_df["scenario"] == scenario_key) &
-            (tac_df["year"] == year) &
-            (tac_df["tac"].isin(["PGE", "SCE", "SDGE"]))
+            (tac_df["scenario"] == scenario_key)
+            & (tac_df["year"] == year)
+            & (tac_df["tac"].isin(["PGE", "SCE", "SDGE"]))
         ].copy()
-        tac_data[f"peak_{pct_key}_spread"] = tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
+        tac_data[f"peak_{pct_key}_spread"] = (
+            tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
+        )
         tac_data["_peak_pct_of_2025"] = (
-            tac_data[f"peak_{pct_key}_mean"] / tac_data[f"peak_{pct_key}_baseline_2025"] * 100
+            tac_data[f"peak_{pct_key}_mean"]
+            / tac_data[f"peak_{pct_key}_baseline_2025"]
+            * 100
         )
         if color_metric == "Growth vs 2025":
             tac_data[color_col] = tac_data[color_col].fillna(0)
@@ -596,15 +523,23 @@ with map_col:
             },
         )
         fig_map.update_traces(marker_line_color="black", marker_line_width=1.2)
-
-        map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
-        map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
-
+        map_data = county_df[
+            (county_df["scenario"] == scenario_key) & (county_df["year"] == year)
+        ].copy()
+        map_data[f"peak_{pct_key}_spread"] = (
+            map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
+        )
     else:
-        map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
-        map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
+        map_data = county_df[
+            (county_df["scenario"] == scenario_key) & (county_df["year"] == year)
+        ].copy()
+        map_data[f"peak_{pct_key}_spread"] = (
+            map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
+        )
         map_data["_peak_pct_of_2025"] = (
-            map_data[f"peak_{pct_key}_mean"] / map_data[f"peak_{pct_key}_baseline_2025"] * 100
+            map_data[f"peak_{pct_key}_mean"]
+            / map_data[f"peak_{pct_key}_baseline_2025"]
+            * 100
         )
         if color_metric == "Growth vs 2025":
             map_data[color_col] = map_data[color_col].fillna(0)
@@ -642,130 +577,111 @@ with map_col:
                 color_col: color_label,
             },
         )
+
     fig_map.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        height=480,
+        height=520,
         coloraxis_colorbar=dict(
-            title=color_label,
-            title_side="right",
-            thickness=10,
-            len=0.7,
-            x=1.01,
-            tickfont=dict(size=10),
+            title=color_label, title_side="right",
+            thickness=10, len=0.7, x=1.01, tickfont=dict(size=10),
         ),
         paper_bgcolor="rgba(0,0,0,0)",
     )
     if not use_tac:
         fig_map.update_traces(marker_line_color="black", marker_line_width=0.5)
 
-    # Transmission paths removed — layer disabled
-    show_transmission = False
-    if show_transmission and transmission_lines:
-
-        kv_classes = [
-            (500,  99999, "500 kV",     "rgba(255,180,50,0.90)",  2.5),
-            (230,  500,   "230–220 kV", "rgba(140,200,255,0.75)", 1.8),
-            (115,  230,   "115–161 kV", "rgba(90,170,150,0.50)",  1.2),
-            (0,    115,   "< 115 kV",   "rgba(80,120,110,0.28)",  0.7),
-        ]
-
-        for min_kv, max_kv, label, color, width in kv_classes:
-            bucket = [l for l in transmission_lines
-                      if min_kv <= l["kv"] < max_kv]
-            if not bucket:
-                continue
-
-            all_lons, all_lats, all_text = [], [], []
-            for seg in bucket:
-                hover = f"{seg['name'] or seg['owner']} — {int(seg['kv'])} kV"
-                all_lons.extend(list(seg["lons"]) + [None])
-                all_lats.extend(list(seg["lats"]) + [None])
-                all_text.extend([hover] * len(seg["lons"]) + [None])
-
-            fig_map.add_trace(go.Scattermapbox(
-                lon=all_lons,
-                lat=all_lats,
-                mode="lines",
-                line=dict(color=color, width=width),
-                text=all_text,
-                hoverinfo="text",
-                name=label,
-                showlegend=False,
-                legendgroup="transmission",
-            ))
-
     st.plotly_chart(fig_map, use_container_width=True, key="county_map")
 
-# ── CONTROLS (right panel) ──
-with ctrl_col:
-    scenario = st.selectbox(
-        "Emissions scenario",
-        [
-            "High Emissions — 2.2–4.4°C warming (SSP3-7.0)",
-            "Moderate Emissions — 1.7–3.0°C warming (SSP2-4.5)",
-        ],
-        index=0,
-        key="scenario_select",
-    )
+# -- CHAT --
+with chat_col:
+    st.markdown("#### Ask about the model")
 
-    st.markdown("---")
-    st.markdown("**Map color**")
-    color_metric = st.radio(
-        "Color by",
-        ["Growth vs 2025", "Peak demand"],
-        index=0,
-        label_visibility="collapsed",
-        key="map_color",
-    )
-    color_view = st.radio(
-        "View as",
-        ["% change", "Absolute (MWh)"],
-        index=0,
-        label_visibility="collapsed",
-        key="map_color_view",
-        horizontal=True,
-    )
+    if not rag_available:
+        st.info("RAG unavailable -- set API keys in Streamlit Secrets.")
+    else:
+        temp_year = st.session_state.get("explorer_year", 2030)
+        temp_map = county_df[
+            (county_df["scenario"] == scenario_key)
+            & (county_df["year"] == temp_year)
+        ]
+        top_county = (
+            temp_map.nlargest(1, f"peak_{pct_key}_mean").iloc[0]["county"]
+            if len(temp_map) > 0
+            else "Los Angeles"
+        )
 
-    st.markdown("---")
-    st.markdown("**Grid lines**")
-    grid_mode = st.radio(
-        "Grid lines",
-        ["County", "TAC areas"],
-        index=0,
-        label_visibility="collapsed",
-        key="grid_mode",
-    )
+        suggestions = [
+            f"What drives demand in {top_county}?",
+            "ClimateFEAT vs CEC comparison?",
+            "SCE capacity margin?",
+            "Why do SSPs converge?",
+        ]
+        s1, s2 = st.columns(2)
+        with s1:
+            if st.button(suggestions[0], key="sug_0", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[0]
+            if st.button(suggestions[2], key="sug_2", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[2]
+        with s2:
+            if st.button(suggestions[1], key="sug_1", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[1]
+            if st.button(suggestions[3], key="sug_3", use_container_width=True):
+                st.session_state["explorer_input"] = suggestions[3]
+
+        if "explorer_messages" not in st.session_state:
+            st.session_state.explorer_messages = []
+
+        if st.session_state.explorer_messages:
+            chat_container = st.container(height=420)
+            with chat_container:
+                for msg in st.session_state.explorer_messages:
+                    with st.chat_message(msg["role"]):
+                        st.markdown(msg["content"])
+        else:
+            chat_container = st.container()
+
+        user_input = st.chat_input(
+            "Ask about projections, capacity, methodology...",
+            key="explorer_chat",
+        )
+        prefill = st.session_state.pop("explorer_input", None)
+        prompt = prefill or user_input
+
+        if prompt:
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            with st.chat_message("assistant"):
+                with st.spinner("Searching corpus..."):
+                    chunks = retrieve(prompt, collection, None)
+                    answer = generate_answer(prompt, chunks)
+                st.markdown(answer)
+            st.session_state.explorer_messages.append(
+                {"role": "assistant", "content": answer}
+            )
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# =====================================================================
 # FORECAST CHART
-# ═══════════════════════════════════════════════════════════════════════════
+# =====================================================================
 st.divider()
 
-# Chart + layer controls side by side
 chart_col, layer_col = st.columns([5, 1], gap="medium")
 
 summary = summary_370 if scenario_key == "ssp370" else summary_245
 summary_other = summary_245 if scenario_key == "ssp370" else summary_370
 other_label = "SSP2-4.5" if scenario_key == "ssp370" else "SSP3-7.0"
 
-# Read chart layer flags from session state (widgets rendered after chart build)
-show_historical   = st.session_state.get("layer_hist", True)
-show_ensemble     = st.session_state.get("layer_ens", False)
-show_capacity     = st.session_state.get("layer_cap", True)
+show_historical = st.session_state.get("layer_hist", True)
+show_ensemble = st.session_state.get("layer_ens", False)
+show_capacity = st.session_state.get("layer_cap", True)
 show_storage_fill = st.session_state.get("layer_fill", True)
 year = st.session_state.get("explorer_year", 2030)
 
-# ---------------------------------------------------------------------------
-# Chart x-axis range: fixed 2018-01-01 → 2040-12-31 so the plot-area edges
-# align exactly with the slider min (2018) and max (2040).
-# ---------------------------------------------------------------------------
 X_MIN_YEAR = 2018
 X_MAX_YEAR = 2040
 
 fig_ts = go.Figure()
 
-# Storage band fill
 if show_capacity and show_storage_fill:
     fig_ts.add_trace(go.Scatter(
         x=pd.concat([capacity_df["date"], capacity_df["date"][::-1]]),
@@ -773,12 +689,9 @@ if show_capacity and show_storage_fill:
         fill="toself",
         fillcolor="rgba(255, 180, 50, 0.15)",
         line=dict(color="rgba(255,255,255,0)"),
-        name="4h battery band",
-        hoverinfo="skip",
-        legendgroup="capacity",
+        name="4h battery band", hoverinfo="skip", legendgroup="capacity",
     ))
 
-# Firm gen line
 if show_capacity:
     fig_ts.add_trace(go.Scatter(
         x=capacity_df["date"], y=capacity_df["firm_gen_mw"],
@@ -788,7 +701,6 @@ if show_capacity:
         hovertemplate="<b>Firm Gen</b><br>Year: %{x|%Y}<br>%{y:,.0f} MW<extra></extra>",
     ))
 
-# Firm + Storage line
 if show_capacity:
     fig_ts.add_trace(go.Scatter(
         x=capacity_df["date"], y=capacity_df["total_mw"],
@@ -799,15 +711,13 @@ if show_capacity:
             capacity_df["firm_gen_mw"], capacity_df["storage_mw"], capacity_df["total_mw"]
         ], axis=1),
         hovertemplate=(
-            "<b>Firm + 4h Battery</b><br>"
-            "Year: %{x|%Y}<br>"
+            "<b>Firm + 4h Battery</b><br>Year: %{x|%Y}<br>"
             "Firm: %{customdata[0]:,.0f} MW<br>"
             "Battery: %{customdata[1]:,.0f} MW<br>"
             "<b>Total: %{customdata[2]:,.0f} MW</b><extra></extra>"
         ),
     ))
 
-# Primary scenario ensemble mean
 fig_ts.add_trace(go.Scatter(
     x=summary["date"], y=summary["mean"],
     mode="lines+markers", name=f"{scenario} ensemble mean",
@@ -815,15 +725,13 @@ fig_ts.add_trace(go.Scatter(
     marker=dict(size=5, color="rgba(50, 130, 200, 0.9)"),
     customdata=np.stack([summary["low"], summary["high"], summary["mean"]], axis=1),
     hovertemplate=(
-        f"<b>{scenario} Ensemble Mean</b><br>"
-        "Year: %{x|%Y}<br>"
+        f"<b>{scenario} Ensemble Mean</b><br>Year: %{{x|%Y}}<br>"
         "Mean: %{customdata[2]:,.0f} MWh<br>"
         "10th: %{customdata[0]:,.0f}<br>"
         "90th: %{customdata[1]:,.0f}<extra></extra>"
     ),
 ))
 
-# Ensemble range band
 if show_ensemble:
     fig_ts.add_trace(go.Scatter(
         x=pd.concat([summary["date"], summary["date"][::-1]]),
@@ -833,7 +741,6 @@ if show_ensemble:
         name=f"{scenario} range (p10-p90)", hoverinfo="skip",
     ))
 
-# Other scenario faded
 fig_ts.add_trace(go.Scatter(
     x=summary_other["date"], y=summary_other["mean"],
     mode="lines", name=f"{other_label} mean",
@@ -841,7 +748,6 @@ fig_ts.add_trace(go.Scatter(
     hovertemplate=f"<b>{other_label}</b><br>Year: %{{x|%Y}}<br>Mean: %{{y:,.0f}} MWh<extra></extra>",
 ))
 
-# Historical actuals
 if show_historical:
     fig_ts.add_trace(go.Scatter(
         x=hist_annual["date"], y=hist_annual["Max_Daily_Electricity_Usage"],
@@ -851,18 +757,11 @@ if show_historical:
         hovertemplate="<b>Historical</b><br>Year: %{x|%Y}<br>MWh: %{y:,.0f}<extra></extra>",
     ))
 
-# Vertical reference line — placed at Jan 1 of the selected year so that
-# the line position = (year - 2018) / (2040 - 2018), matching the slider's
-# linear interpolation over the same integer range.
 fig_ts.add_vline(
     x=pd.Timestamp(f"{year}-01-01"),
     line_dash="solid", line_color="rgba(255, 255, 255, 0.35)", line_width=1.5,
 )
 
-# Lock x-axis to [2018-01-01, 2040-01-01] — exactly 22 years, matching
-# the slider's 22 integer steps (2018 … 2040).  This ensures the linear
-# mapping is identical: fraction = (year − 2018) / 22 for both slider
-# thumb position and chart vline position.
 fig_ts.update_layout(
     xaxis_title="Year",
     yaxis_title="Peak Demand / Capacity (MWh / MW)",
@@ -887,39 +786,24 @@ with chart_col:
     )
     st.plotly_chart(fig_ts, use_container_width=True, key="forecast_chart")
 
-    # JS: measure the Plotly plot area and align the slider track to it.
-    # Runs after each Streamlit render.  Polls until both elements exist.
+    # JS: measure plotly plot-area rect, set slider padding to match exactly.
     st.markdown("""
     <script>
-    (function alignSliderToPlotArea() {
+    (function alignSlider() {
         function tryAlign() {
-            // Plotly plot area — the invisible drag rect that covers exactly the data region
-            var plotArea = document.querySelector('[key="forecast_chart"] .nsewdrag, .nsewdrag');
-            var slider  = document.querySelector('[data-testid="stSlider"]');
-            if (!plotArea || !slider) return false;
-
-            var plotRect   = plotArea.getBoundingClientRect();
-            var sliderRect = slider.getBoundingClientRect();
-
-            // How much padding the slider needs so its content box (= track)
-            // spans exactly the same horizontal extent as the plot area.
-            var padLeft  = plotRect.left - sliderRect.left;
-            var padRight = sliderRect.right - plotRect.right;
-
-            // Clamp to sane values (never negative)
-            padLeft  = Math.max(0, padLeft);
-            padRight = Math.max(0, padRight);
-
-            slider.style.setProperty('padding-left',  padLeft  + 'px', 'important');
-            slider.style.setProperty('padding-right', padRight + 'px', 'important');
+            var pa = document.querySelector('.nsewdrag');
+            var sl = document.querySelector('[data-testid="stSlider"]');
+            if (!pa || !sl) return false;
+            var pr = pa.getBoundingClientRect();
+            var sr = sl.getBoundingClientRect();
+            var pl = Math.max(0, pr.left - sr.left);
+            var prr = Math.max(0, sr.right - pr.right);
+            sl.style.setProperty('padding-left',  pl  + 'px', 'important');
+            sl.style.setProperty('padding-right', prr + 'px', 'important');
             return true;
         }
-
-        var attempts = 0;
-        var interval = setInterval(function() {
-            attempts++;
-            if (tryAlign() || attempts > 50) clearInterval(interval);
-        }, 100);
+        var n = 0;
+        var iv = setInterval(function() { n++; if (tryAlign() || n > 50) clearInterval(iv); }, 100);
     })();
     </script>
     """, unsafe_allow_html=True)
@@ -931,35 +815,46 @@ with layer_col:
     show_capacity = st.checkbox("Capacity lines", value=True, key="layer_cap")
     show_storage_fill = st.checkbox("Storage band", value=True, key="layer_fill")
 
-# ═══════════════════════════════════════════════════════════════════════════
+# =====================================================================
 # TABLES
-# ═══════════════════════════════════════════════════════════════════════════
-tab1, tab2 = st.tabs(["📊 TAC Summary", "🔥 Top 15 Counties"])
+# =====================================================================
+tab1, tab2 = st.tabs(["TAC Summary", "Top 15 Counties"])
 
 with tab1:
     caiso_tacs = ["PGE", "SCE", "SDGE"]
     tac_year = tac_df[
-        (tac_df["scenario"] == scenario_key) &
-        (tac_df["year"] == year) &
-        (tac_df["tac"].isin(caiso_tacs))
+        (tac_df["scenario"] == scenario_key)
+        & (tac_df["year"] == year)
+        & (tac_df["tac"].isin(caiso_tacs))
     ].copy()
     if len(tac_year) > 0:
-        display = tac_year[["tac", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
-                            f"peak_{pct_key}_p90", "capacity_total", f"margin_{pct_key}"]].copy()
-        display.columns = ["TAC", f"{peak_type} Peak (MW)", "10th Pct", "90th Pct",
-                           "Firm+Storage (MW)", "Margin (MW)"]
+        display = tac_year[[
+            "tac", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
+            f"peak_{pct_key}_p90", "capacity_total", f"margin_{pct_key}",
+        ]].copy()
+        display.columns = [
+            "TAC", f"{peak_type} Peak (MW)", "10th Pct", "90th Pct",
+            "Firm+Storage (MW)", "Margin (MW)",
+        ]
         for col in display.columns:
             if col != "TAC":
-                display[col] = display[col].map(lambda x: f"{x:,.0f}" if pd.notna(x) else "—")
+                display[col] = display[col].map(
+                    lambda x: f"{x:,.0f}" if pd.notna(x) else "-"
+                )
         st.dataframe(display, hide_index=True, use_container_width=True)
 
 with tab2:
     if len(map_data) > 0:
         top15 = map_data.nlargest(15, f"peak_{pct_key}_mean")[
-            ["county", "tac_area", f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
-             f"peak_{pct_key}_p90", f"peak_{pct_key}_pct_change_vs_2025"]
+            [
+                "county", "tac_area",
+                f"peak_{pct_key}_mean", f"peak_{pct_key}_p10",
+                f"peak_{pct_key}_p90", f"peak_{pct_key}_pct_change_vs_2025",
+            ]
         ].copy()
-        top15.columns = ["County", "TAC", "Peak (MWh)", "10th Pct", "90th Pct", "Growth (%)"]
+        top15.columns = [
+            "County", "TAC", "Peak (MWh)", "10th Pct", "90th Pct", "Growth (%)",
+        ]
         for col in ["Peak (MWh)", "10th Pct", "90th Pct"]:
             top15[col] = top15[col].map("{:,.0f}".format)
         top15["Growth (%)"] = top15["Growth (%)"].map("{:+.1f}%".format)
