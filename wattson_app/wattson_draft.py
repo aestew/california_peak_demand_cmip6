@@ -632,12 +632,11 @@ with map_col:
         height=480,
         coloraxis_colorbar=dict(
             title=color_label,
-            titleside="right",
+            title_side="right",
             thickness=10,
             len=0.7,
             x=1.01,
             tickfont=dict(size=10),
-            titlefont=dict(size=10),
         ),
         paper_bgcolor="rgba(0,0,0,0)",
     )
