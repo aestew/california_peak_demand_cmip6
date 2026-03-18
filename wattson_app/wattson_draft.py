@@ -182,6 +182,14 @@ h4 {
   letter-spacing: 0.07em !important;
   text-transform: uppercase !important;
 }
+[data-testid="stSlider"] [data-baseweb="slider"] {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+[data-testid="stSlider"] [role="slider"] {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
 
 /* Buttons — suggestion pills */
 .stButton > button {
@@ -418,9 +426,8 @@ st.caption(
 # (ctrl_col sets the widgets but renders after map_col)
 _scenario_val = st.session_state.get("scenario_select", "High Emissions — 2.2–4.4°C warming (SSP3-7.0)")
 scenario_key = "ssp370" if "SSP3-7.0" in _scenario_val else "ssp245"
-_peak_val = st.session_state.get("peak_select", "Top 1%")
-pct_key = "1pct" if _peak_val == "Top 1%" else "5pct"
-peak_type = _peak_val
+pct_key = "1pct"
+peak_type = "Top 1%"
 
 # ═══════════════════════════════════════════════════════════════════════════
 # MAIN SECTION: CHAT (left) | MAP (center) | CONTROLS (right)
@@ -617,8 +624,8 @@ with map_col:
     if not use_tac:
         fig_map.update_traces(marker_line_color="black", marker_line_width=0.5)
 
-    # ── Transmission lines overlay — styled by voltage class ──
-    show_transmission = st.session_state.get("layer_tx", True)
+    # Transmission paths removed — layer disabled
+    show_transmission = False
     if show_transmission and transmission_lines:
 
         kv_classes = [
@@ -667,13 +674,6 @@ with ctrl_col:
         key="scenario_select",
     )
 
-    peak_type_sel = st.selectbox(
-        "Peak demand threshold",
-        ["Top 1%", "Top 5%"],
-        index=0,
-        key="peak_select",
-    )
-
     st.markdown("---")
     st.markdown("**Map color**")
     color_metric = st.radio(
@@ -693,9 +693,6 @@ with ctrl_col:
     )
 
     st.markdown("---")
-    st.markdown("**Map layers**")
-    show_transmission = st.checkbox("Transmission paths", value=True, key="layer_tx")
-
     st.markdown("**Grid lines**")
     grid_mode = st.radio(
         "Grid lines",
@@ -704,19 +701,27 @@ with ctrl_col:
         label_visibility="collapsed",
         key="grid_mode",
     )
-    st.markdown("---")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FORECAST CHART — full width
+# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
+# FORECAST CHART — full width with inline controls
+# ═══════════════════════════════════════════════════════════════════════════
+st.divider()
+
+# Chart controls row — slider + layer toggles side by side
+chart_ctrl_left, chart_ctrl_right = st.columns([3, 1], gap="medium")
+with chart_ctrl_left:
+    year = st.slider("Year", min_value=2018, max_value=2040, value=2030, step=1, key="explorer_year")
+with chart_ctrl_right:
     st.markdown("**Chart layers**")
     show_historical = st.checkbox("Historical actuals", value=True, key="layer_hist")
     show_ensemble = st.checkbox("Ensemble range", value=False, key="layer_ens")
     show_capacity = st.checkbox("Capacity lines", value=True, key="layer_cap")
     show_storage_fill = st.checkbox("Storage band", value=True, key="layer_fill")
 
-
-# ═══════════════════════════════════════════════════════════════════════════
-# FORECAST CHART — full width
-# ═══════════════════════════════════════════════════════════════════════════
-st.divider()
-year = st.slider("Year", min_value=2018, max_value=2040, value=2030, step=1, key="explorer_year")
 summary = summary_370 if scenario_key == "ssp370" else summary_245
 summary_other = summary_245 if scenario_key == "ssp370" else summary_370
 other_label = "SSP2-4.5" if scenario_key == "ssp370" else "SSP3-7.0"
