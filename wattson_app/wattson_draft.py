@@ -197,13 +197,8 @@ h4 {
   box-shadow: 0 0 0 2px rgba(229,57,53,0.25) !important;
 }
 
-/* Track left of thumb  = past  (muted gray) */
+/* Track filled portion (left of thumb) — red */
 [data-testid="stSlider"] [data-baseweb="slider"] [role="progressbar"] {
-  background-color: rgba(120,120,120,0.3) !important;
-}
-
-/* Track right of thumb = future (red) */
-[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
   background-color: #E53935 !important;
 }
 
