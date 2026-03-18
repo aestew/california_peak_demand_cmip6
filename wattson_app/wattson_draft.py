@@ -23,7 +23,6 @@ st.set_page_config(page_title="ClimateFEAT Explorer", page_icon="\U0001f321\ufe0
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600;700&family=Inconsolata:wght@400;500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 :root {
   --accent:        #5AAAE8;
@@ -42,11 +41,13 @@ st.markdown("""
   --serif:         'Literata', Georgia, serif;
 }
 
-/* Fix Material Symbols icons rendering as text */
+/* Hide Material Symbol icon names rendered as fallback text */
 [data-testid="stIconMaterial"] {
-  font-family: 'Material Symbols Rounded' !important;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
-  -webkit-font-smoothing: antialiased;
+  font-size: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
 }
 
 .stApp {
