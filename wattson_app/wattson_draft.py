@@ -91,7 +91,7 @@ h4, h5, h6, p, span, label {
   font-size: 11px !important;
 }
 [data-testid="stSelectbox"] label {
-  color: var(--text-dim) !important;
+  color: var(--accent) !important;
   font-family: var(--mono) !important;
   font-size: 10px !important;
   letter-spacing: 0.08em !important;
@@ -485,13 +485,13 @@ with map_col:
         color_col = f"peak_{pct_key}_pct_change_vs_2025"
         color_label = "Growth vs 2025 (%)"
         color_scale = "RdYlGn_r"
-        # Dynamic range: floor at -10, ceiling at actual data max
-        _growth_data = county_df[
-            (county_df["scenario"] == scenario_key) &
-            (county_df["year"] == year)
-        ][color_col].dropna()
-        _max_growth = float(_growth_data.max()) if len(_growth_data) else 50
-        color_range = [-10, max(_max_growth, 5)]
+        # Fixed range anchored to 2040 max so scale is stable across all years
+        color_range = [0, 50]
+    elif color_metric == "Growth vs 2025 (MWh)":
+        color_col = f"peak_{pct_key}_delta_vs_2025"
+        color_label = "Growth vs 2025 (MWh)"
+        color_scale = "RdYlGn_r"
+        color_range = [0, 5000]
     elif color_metric == "Peak demand (MWh)":
         color_col = f"peak_{pct_key}_mean"
         color_label = f"{peak_type} Peak (MWh)"
@@ -507,10 +507,11 @@ with map_col:
         # ── TAC choropleth — 3 polygons, actual forecast data ──
         tac_data = tac_df[
             (tac_df["scenario"] == scenario_key) &
-            (tac_df["year"] == year)
+            (tac_df["year"] == year) &
+            (tac_df["tac"].isin(["PGE", "SCE", "SDGE"]))
         ].copy()
         tac_data[f"peak_{pct_key}_spread"] = tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
-        if color_metric == "Growth vs 2025 (%)":
+        if color_metric in ("Growth vs 2025 (%)", "Growth vs 2025 (MWh)"):
             tac_data[color_col] = tac_data[color_col].fillna(0)
 
         fig_map = px.choropleth_mapbox(
@@ -549,7 +550,7 @@ with map_col:
         # ── County choropleth ──
         map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
         map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
-        if color_metric == "Growth vs 2025 (%)":
+        if color_metric in ("Growth vs 2025 (%)", "Growth vs 2025 (MWh)"):
             map_data[color_col] = map_data[color_col].fillna(0)
 
         fig_map = px.choropleth_mapbox(
@@ -654,7 +655,7 @@ with ctrl_col:
     st.markdown("**Map color**")
     color_choice = st.radio(
         "Color by",
-        ["Growth vs 2025 (%)", "Peak demand (MWh)", "Ensemble spread"],
+        ["Growth vs 2025 (%)", "Growth vs 2025 (MWh)", "Peak demand (MWh)", "Ensemble spread"],
         index=0,
         label_visibility="collapsed",
         key="map_color",
