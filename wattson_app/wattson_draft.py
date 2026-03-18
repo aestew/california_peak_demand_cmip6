@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from urllib.request import urlopen
 
-st.set_page_config(page_title="ClimateFEAT Explorer", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="ClimateFEAT Explorer", page_icon="🌡️", layout="wide")
 
 # ---------------------------------------------------------------------------
 # DESIGN SYSTEM — matches index.html / wattson_landing.html
@@ -60,6 +60,14 @@ h1, h2, h3 {
 }
 h4, h5, h6, p, span, label {
   font-family: var(--sans) !important;
+}
+h4 {
+  font-family: var(--serif) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.4 !important;
 }
 /* Tighten header spacing */
 .stApp h1 {
@@ -125,12 +133,45 @@ h4, h5, h6, p, span, label {
   line-height: 1.4 !important;
 }
 
-/* Hide chat submit button icon text (double_arrow_right fallback) */
-[data-testid="stChatInputContainer"] button span {
-  font-size: 0 !important;
+/* Hide double_arrow_right fallback text on chat submit button */
+[data-testid="stChatInputContainer"] button span[data-testid="stIconMaterial"] { display: none !important; }
+[data-testid="stChatInputContainer"] button { font-size: 0 !important; }
+[data-testid="stChatInputContainer"] button svg { display: block !important; font-size: initial !important; }
+
+/* Chat messages — broad targeting */
+[data-testid="stChatMessage"] {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 10px !important;
+  margin-bottom: 8px !important;
+  font-family: var(--sans) !important;
 }
-[data-testid="stChatInputContainer"] button svg {
-  display: block !important;
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] span,
+[data-testid="stChatMessage"] div,
+[data-testid="stChatMessage"] li,
+[data-testid="stChatMessage"] a,
+[data-testid="stChatMessage"] strong,
+[data-testid="stChatMessage"] em,
+[data-testid="stChatMessage"] code {
+  color: var(--text-body) !important;
+  font-family: var(--sans) !important;
+  font-size: 12.5px !important;
+  line-height: 1.65 !important;
+}
+[data-testid="stChatInputContainer"] textarea {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+}
+[data-testid="stChatInputContainer"] textarea::placeholder {
+  color: var(--text-faint) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
 }
 
 /* Slider */
@@ -157,39 +198,6 @@ h4, h5, h6, p, span, label {
   border-color: var(--accent-border) !important;
   color: var(--accent) !important;
   background: var(--accent-dim) !important;
-}
-
-/* Chat messages */
-[data-testid="stChatMessage"] {
-  background: var(--card-bg) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 10px !important;
-  margin-bottom: 8px !important;
-}
-[data-testid="stChatMessage"] p {
-  color: var(--text-body) !important;
-  font-family: var(--sans) !important;
-  font-size: 12.5px !important;
-  line-height: 1.65 !important;
-}
-[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] * {
-  font-family: var(--sans) !important;
-  font-size: 12.5px !important;
-  color: var(--text-body) !important;
-}
-[data-testid="stChatInputContainer"] textarea {
-  background: var(--card-bg) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 8px !important;
-  color: var(--text-primary) !important;
-  font-family: var(--sans) !important;
-  font-size: 12px !important;
-}
-[data-testid="stChatInputContainer"] textarea::placeholder {
-  color: var(--text-faint) !important;
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-  letter-spacing: 0.04em !important;
 }
 
 /* Info box */
@@ -400,7 +408,7 @@ except Exception:
 # ---------------------------------------------------------------------------
 # HEADER + TOP CONTROLS
 # ---------------------------------------------------------------------------
-st.title("⚡ ClimateFEAT Explorer")
+st.title("ClimateFEAT Explorer")
 st.caption(
     "Climate-informed peak electricity demand projections for California — "
     "58 counties · 2018–2040 · CMIP6 ensemble uncertainty"
@@ -421,7 +429,7 @@ chat_col, map_col, ctrl_col = st.columns([1.8, 3.5, 1.2], gap="medium")
 
 # ── CHAT (left) ──
 with chat_col:
-    st.markdown("#### 💬 Ask about what you see")
+    st.markdown("#### Learn about the ClimateFEAT model, outcomes and comparison to CEC models")
 
     if not rag_available:
         st.info("RAG unavailable — set API keys in Streamlit Secrets.")
