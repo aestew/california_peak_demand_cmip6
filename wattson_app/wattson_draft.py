@@ -174,21 +174,14 @@ h4 {
   letter-spacing: 0.04em !important;
 }
 
-/* Slider — hide label, thumb above track */
-[data-testid="stSlider"] label {
-  display: none !important;
-}
-[data-testid="stSlider"] {
-  padding-top: 0 !important;
-  margin-top: 4px !important;
-}
-[data-testid="stSlider"] [data-baseweb="slider"] {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}
+/* Slider */
+[data-testid="stSlider"] label { display: none !important; }
+[data-testid="stSlider"] [data-testid="stSliderThumbValue"] { display: none !important; }
 [data-testid="stSlider"] [role="slider"] {
-  top: -8px !important;
-  transform: translateX(-50%) !important;
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
 }
 [data-testid="stTickBarMin"],
 [data-testid="stTickBarMax"] {
