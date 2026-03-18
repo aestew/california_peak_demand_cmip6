@@ -512,8 +512,8 @@ with map_col:
             all_lons, all_lats, all_text = [], [], []
             for seg in bucket:
                 hover = f"{seg['name'] or seg['owner']} — {int(seg['kv'])} kV"
-                all_lons.extend(seg["lons"] + [None])
-                all_lats.extend(seg["lats"] + [None])
+                all_lons.extend(list(seg["lons"]) + [None])
+                all_lats.extend(list(seg["lats"]) + [None])
                 all_text.extend([hover] * len(seg["lons"]) + [None])
 
             fig_map.add_trace(go.Scattermapbox(
