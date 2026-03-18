@@ -540,7 +540,9 @@ with map_col:
             ))
 
     # ── LSE territory boundaries ──
-    show_lse = st.session_state.get("layer_lse", False)
+    # Read grid_mode directly — must be evaluated before fig_map is plotted
+    _gm = st.session_state.get("grid_mode", "County boundaries")
+    show_lse = _gm in ("LSE territories", "Both")
     if show_lse and lse_territories:
         # Color by IOU vs POU
         lse_colors = {
@@ -597,17 +599,6 @@ with ctrl_col:
         label_visibility="collapsed",
         key="grid_mode",
     )
-    # Apply grid_mode to session state flags consumed by overlays
-    _gm = st.session_state.get("grid_mode", "County boundaries")
-    # County boundaries are built into the choropleth — LSE is additive
-    # We expose show_lse to the overlay block via session state
-    if _gm == "LSE territories":
-        st.session_state["layer_lse"] = True
-    elif _gm == "Both":
-        st.session_state["layer_lse"] = True
-    else:
-        st.session_state["layer_lse"] = False
-
     st.markdown("---")
     st.markdown("**Chart layers**")
     show_historical = st.checkbox("Historical actuals", value=True, key="layer_hist")
