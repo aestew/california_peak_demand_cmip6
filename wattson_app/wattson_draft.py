@@ -322,33 +322,10 @@ def load_ca_geojson():
     return {"type": "FeatureCollection", "features": ca_features}
 
 @st.cache_data
-def build_tac_geojson(_ca_geojson, county_tac):
-    """
-    Dissolve county polygons into TAC territory polygons using shapely.
-    Returns a GeoJSON FeatureCollection keyed by TAC name.
-    """
-    from shapely.geometry import shape, mapping
-    from shapely.ops import unary_union
-
-    tac_shapes = {}
-    for feature in _ca_geojson["features"]:
-        county = feature["properties"].get("NAME", "")
-        tac = county_tac.get(county, "Other")
-        geom = shape(feature["geometry"])
-        if tac not in tac_shapes:
-            tac_shapes[tac] = []
-        tac_shapes[tac].append(geom)
-
-    features = []
-    for tac, geoms in tac_shapes.items():
-        dissolved = unary_union(geoms)
-        features.append({
-            "type": "Feature",
-            "id": tac,
-            "properties": {"TAC": tac},
-            "geometry": mapping(dissolved),
-        })
-    return {"type": "FeatureCollection", "features": features}
+def load_tac_geojson():
+    """Pre-built TAC GeoJSON — counties dissolved into PGE/SCE/SDGE territories."""
+    with open(os.path.join(DATA_DIR, "tac_geojson.json")) as f:
+        return json.load(f)
 
 @st.cache_data
 def load_transmission_lines():
@@ -373,7 +350,7 @@ def load_lse_territories():
 summary_370, summary_245, hist_annual = load_forecast_data()
 county_df, tac_df, state_df, capacity_df = load_viz_data()
 ca_geojson = load_ca_geojson()
-tac_geojson = build_tac_geojson(ca_geojson, COUNTY_TAC)
+tac_geojson = load_tac_geojson()
 transmission_lines = load_transmission_lines()
 lse_territories = load_lse_territories()
 
