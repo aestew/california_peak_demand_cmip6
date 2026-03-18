@@ -488,33 +488,35 @@ with map_col:
     _gm = st.session_state.get("grid_mode", "County")
     use_tac = _gm == "TAC areas"
 
-    color_metric = st.session_state.get("map_color", "Growth vs 2025 (%)")
-    if color_metric == "Growth vs 2025 (%)":
-        color_col = f"peak_{pct_key}_pct_change_vs_2025"
-        color_label = "Growth vs 2025 (%)"
+    color_metric = st.session_state.get("map_color", "Growth vs 2025")
+    color_view = st.session_state.get("map_color_view", "% change")
+    use_pct = color_view == "% change"
+
+    if color_metric == "Growth vs 2025":
+        if use_pct:
+            color_col = f"peak_{pct_key}_pct_change_vs_2025"
+            color_label = "Growth vs 2025 (%)"
+        else:
+            color_col = f"peak_{pct_key}_delta_vs_2025"
+            color_label = "Growth vs 2025 (MWh)"
         color_scale = "RdYlGn_r"
-        color_range = None  # computed below after filtering
-    elif color_metric == "Growth vs 2025 (MWh)":
-        color_col = f"peak_{pct_key}_delta_vs_2025"
-        color_label = "Growth vs 2025 (MWh)"
-        color_scale = "RdYlGn_r"
-        color_range = None
-    elif color_metric == "Peak demand (MWh)":
-        color_col = f"peak_{pct_key}_mean"
-        color_label = f"{peak_type} Peak (MWh)"
+        color_range = None  # computed dynamically below
+    else:  # Peak demand
+        if use_pct:
+            # % of 2025 baseline — normalizes LA vs Alpine
+            color_col = "_peak_pct_of_2025"
+            color_label = "Peak as % of 2025 baseline"
+        else:
+            color_col = f"peak_{pct_key}_mean"
+            color_label = f"Peak demand (MWh)"
         color_scale = "YlOrRd"
-        color_range = None
-    else:
-        color_col = f"peak_{pct_key}_spread"
-        color_label = "Ensemble Spread (MWh)"
-        color_scale = "Purples"
         color_range = None
 
     def dynamic_range(series):
-        """0-anchored: negatives show as green, positives as red, 0 = neutral."""
+        """Dynamic range. For growth metrics: 0-anchored. For absolute: min to max."""
         lo = min(0.0, float(series.min()))
         hi = max(0.0, float(series.max())) * 1.05
-        return [lo, max(hi, 1.0)]  # guard against all-zero
+        return [lo, max(hi, 1.0)]
 
     if use_tac:
         # ── TAC choropleth — 3 polygons, actual forecast data ──
@@ -524,8 +526,11 @@ with map_col:
             (tac_df["tac"].isin(["PGE", "SCE", "SDGE"]))
         ].copy()
         tac_data[f"peak_{pct_key}_spread"] = tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
-        if color_metric in ("Growth vs 2025 (%)", "Growth vs 2025 (MWh)"):
-            tac_data[color_col] = tac_data[color_col].fillna(0).clip(lower=0)
+        tac_data["_peak_pct_of_2025"] = (
+            tac_data[f"peak_{pct_key}_mean"] / tac_data[f"peak_{pct_key}_baseline_2025"] * 100
+        )
+        if color_metric == "Growth vs 2025":
+            tac_data[color_col] = tac_data[color_col].fillna(0)
         color_range = dynamic_range(tac_data[color_col].dropna())
 
         fig_map = px.choropleth_mapbox(
@@ -564,7 +569,10 @@ with map_col:
         # ── County choropleth ──
         map_data = county_df[(county_df["scenario"] == scenario_key) & (county_df["year"] == year)].copy()
         map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
-        if color_metric in ("Growth vs 2025 (%)", "Growth vs 2025 (MWh)"):
+        map_data["_peak_pct_of_2025"] = (
+            map_data[f"peak_{pct_key}_mean"] / map_data[f"peak_{pct_key}_baseline_2025"] * 100
+        )
+        if color_metric == "Growth vs 2025":
             map_data[color_col] = map_data[color_col].fillna(0)
         color_range = dynamic_range(map_data[color_col].dropna())
 
@@ -668,12 +676,20 @@ with ctrl_col:
 
     st.markdown("---")
     st.markdown("**Map color**")
-    color_choice = st.radio(
+    color_metric = st.radio(
         "Color by",
-        ["Growth vs 2025 (%)", "Growth vs 2025 (MWh)", "Peak demand (MWh)", "Ensemble spread"],
+        ["Growth vs 2025", "Peak demand"],
         index=0,
         label_visibility="collapsed",
         key="map_color",
+    )
+    color_view = st.radio(
+        "View as",
+        ["% change", "Absolute (MWh)"],
+        index=0,
+        label_visibility="collapsed",
+        key="map_color_view",
+        horizontal=True,
     )
 
     st.markdown("---")
