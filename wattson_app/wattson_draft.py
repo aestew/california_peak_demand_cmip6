@@ -485,13 +485,12 @@ with map_col:
         color_col = f"peak_{pct_key}_pct_change_vs_2025"
         color_label = "Growth vs 2025 (%)"
         color_scale = "RdYlGn_r"
-        # Fixed range anchored to 2040 max so scale is stable across all years
-        color_range = [0, 50]
+        color_range = None  # computed below after filtering
     elif color_metric == "Growth vs 2025 (MWh)":
         color_col = f"peak_{pct_key}_delta_vs_2025"
         color_label = "Growth vs 2025 (MWh)"
         color_scale = "RdYlGn_r"
-        color_range = [0, 5000]
+        color_range = None
     elif color_metric == "Peak demand (MWh)":
         color_col = f"peak_{pct_key}_mean"
         color_label = f"{peak_type} Peak (MWh)"
@@ -503,6 +502,12 @@ with map_col:
         color_scale = "Purples"
         color_range = None
 
+    def dynamic_range(series):
+        """Min/max range from actual data, with small padding."""
+        lo, hi = float(series.min()), float(series.max())
+        pad = (hi - lo) * 0.05
+        return [lo - pad, hi + pad]
+
     if use_tac:
         # ── TAC choropleth — 3 polygons, actual forecast data ──
         tac_data = tac_df[
@@ -513,6 +518,7 @@ with map_col:
         tac_data[f"peak_{pct_key}_spread"] = tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
         if color_metric in ("Growth vs 2025 (%)", "Growth vs 2025 (MWh)"):
             tac_data[color_col] = tac_data[color_col].fillna(0)
+        color_range = dynamic_range(tac_data[color_col].dropna())
 
         fig_map = px.choropleth_mapbox(
             tac_data,
@@ -552,6 +558,7 @@ with map_col:
         map_data[f"peak_{pct_key}_spread"] = map_data[f"peak_{pct_key}_p90"] - map_data[f"peak_{pct_key}_p10"]
         if color_metric in ("Growth vs 2025 (%)", "Growth vs 2025 (MWh)"):
             map_data[color_col] = map_data[color_col].fillna(0)
+        color_range = dynamic_range(map_data[color_col].dropna())
 
         fig_map = px.choropleth_mapbox(
             map_data,
