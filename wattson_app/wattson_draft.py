@@ -503,9 +503,10 @@ with map_col:
         color_range = None
 
     def dynamic_range(series):
-        """Range from 0 to actual data max, with small padding."""
-        hi = float(series.max())
-        return [0, hi * 1.05]
+        """0-anchored: negatives show as green, positives as red, 0 = neutral."""
+        lo = min(0.0, float(series.min()))
+        hi = max(0.0, float(series.max())) * 1.05
+        return [lo, max(hi, 1.0)]  # guard against all-zero
 
     if use_tac:
         # ── TAC choropleth — 3 polygons, actual forecast data ──
@@ -516,7 +517,7 @@ with map_col:
         ].copy()
         tac_data[f"peak_{pct_key}_spread"] = tac_data[f"peak_{pct_key}_p90"] - tac_data[f"peak_{pct_key}_p10"]
         if color_metric in ("Growth vs 2025 (%)", "Growth vs 2025 (MWh)"):
-            tac_data[color_col] = tac_data[color_col].fillna(0)
+            tac_data[color_col] = tac_data[color_col].fillna(0).clip(lower=0)
         color_range = dynamic_range(tac_data[color_col].dropna())
 
         fig_map = px.choropleth_mapbox(
