@@ -177,7 +177,7 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
 .pipeline-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
 .pipeline-card p { font-size: 13.5px; font-weight: 300; color: var(--text-body); line-height: 1.6; flex: 1; }
 .pipeline-card .tech {
-  font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+  font-family: var(--mono); font-size: 13px; color: var(--text-faint);
   margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
 }
 
@@ -189,12 +189,12 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
   align-items: flex-start;
 }
 .citations-label {
-  font-family: var(--mono); font-size: 10px; color: var(--text-faint);
+  font-family: var(--mono); font-size: 13px; color: var(--text-faint);
   letter-spacing: .08em; text-transform: uppercase;
   padding-top: 2px; flex-shrink: 0; margin-right: 4px;
 }
 .cite-tag {
-  font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+  font-family: var(--mono); font-size: 14px; color: var(--text-dim);
   background: rgba(14,28,26,.55); border: 1px solid var(--border);
   border-radius: 4px; padding: 3px 9px; line-height: 1.5;
   text-decoration: none; transition: border-color .2s, color .2s;
@@ -325,10 +325,10 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 
 <section class="hero">
   <div class="container">
-    <div class="hero-label">Climate-Forward Electricity &amp; Adaptation Toolkit</div>
+    <div class="hero-label">Climate-Forward Electricity &amp; Forecasting Tool</div>
     <h1>Peak demand.<br><span class="dim">Projected.</span></h1>
-    <p class="hero-tagline">We forecast so California can build.</p>
-    <p class="hero-sub">Dynamic, adjustable demand projections powered by state-of-the-art climate science. Built for the teams planning California's electric future.</p>
+    <p class="hero-tagline">Forecasting Peak Electricity Demand for California.</p>
+    <p class="hero-sub">Forecasting peak electricity demand through dynamic, adjustable projections. Powered by state-of-the-art climate science. Built for teams planning California's electric future.</p>
     <div class="hero-stats">
       <div class="hero-stat"><div class="number">2</div><div class="label"> Climate<br>Futures</div></div>
       <div class="hero-stat"><div class="number">39</div><div class="label"> Simulations <br>between each future</div></div>
@@ -347,25 +347,25 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 <section id="methodology">
   <div class="container">
     <div class="reveal">
-      <div class="section-label">Why ClimateFEAT?</div>
-      <div class="section-title">Learning from every Californian's life.</div>
-      <p class="section-desc">Our model learns using <b>neighborhood-level data</b>, with <b>high-resolution models</b> reflecting hyper-local climate impacts to forecast California peak electricity demand. <a href="https://github.com/aestew/california_peak_demand_cmip6/tree/main/pipeline" class="github-link">See pipeline on GitHub →</a></p>
+      <div class="section-label">What does this model learn from?</div>
+      <div class="section-title">Electricity Demand Forecasting learned through every California's experience.</div>
+      <p class="section-desc">Peak Electricity Demand forecased using <b>neighborhood-level data</b>, with <b>high-resolution models.</b> We use hyper-local climate impacts to forecast accurate peak electricity demand in California. <a href="https://github.com/aestew/california_peak_demand_cmip6/tree/main/pipeline" class="github-link">See pipeline on GitHub →</a></p>
     </div>
     <div class="pipeline-grid">
       <div class="pipeline-card reveal">
-        <div class="pipeline-step">01 — Learning from reality</div>
+        <div class="pipeline-step">01 — Local, Lived History</div>
         <h3>Your Weather Experience</h3>
-        <p>Using real-life hyper-local weather observations compiled by NOAA and synthesized by population, this model knows how Californians' unique weather experience impacts your electricity usage.</p>
+        <p>Using real-life, hyper-local weather observations compiled by NOAA and synthesized by 1km population data, this model knows how Californians' unique weather experience impacts electricity usage.</p>
         <div class="tech">URMA 2.5km · WorldPop · xarray · Dask</div>
       </div>
       <div class="pipeline-card reveal">
-        <div class="pipeline-step">02 — Climate futures</div>
+        <div class="pipeline-step">02 — Hyper-local Climate Forecasts</div>
         <h3>Frontier Climate Forecasts</h3>
-        <p>Cutting-edge climate forecasts mapped for your experience. Helping Californians be prepared for the next 15 years through accounting for outcome probabilities. </p>
+        <p>Cutting-edge climate forecasts mapped . Helping Californians be prepared for the next 15 years through accounting for outcome probabilities. </p>
         <div class="tech">LOCA2-Hybrid · 7 GCMs · SSP2-4.5 · SSP3-7.0</div>
       </div>
       <div class="pipeline-card reveal">
-        <div class="pipeline-step">03 — Demand forecasting</div>
+        <div class="pipeline-step">03 — Forecasting using real interactions</div>
         <h3>Five Sensing Layers</h3>
         <p>Models calibrated to learn complex interactions between weather, location, and lived experiences to provide customizable demand outcomes.</p>
         <div class="tech">Feature Streams · PyTorch · MLflow · county embeddings · 2-phase attention</div>
@@ -393,7 +393,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
   <div class="container">
     <div class="reveal">
       <div class="section-label">Architecture</div>
-      <div class="section-title">Five streams, one forecast</div>
+      <div class="section-title">Five Layers, one forecast</div>
     </div>
     <div class="arch-section">
       <div class="arch-text reveal">
