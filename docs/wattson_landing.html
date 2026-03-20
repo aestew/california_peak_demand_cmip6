@@ -67,16 +67,6 @@ h1{
   position:relative;
   opacity:0;animation:fadeUp .7s ease forwards .6s;
 }
-.gif-slot img{width:100%;height:100%;object-fit:cover;border-radius:11px;display:none}
-.gif-slot img.loaded{display:block}
-.gif-placeholder{
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-}
-.gif-icon{width:36px;height:36px;opacity:.25;}
-.gif-placeholder p{
-  font-family:'Inconsolata',monospace;font-size:11px;
-  color:#3A6858;letter-spacing:.06em;text-transform:uppercase;
-}
 .desc{
   font-size:14px;font-weight:300;line-height:1.7;color:#6A9890;
   max-width:380px;margin-bottom:32px;
@@ -134,28 +124,17 @@ h1{
   <div class="tagline">California's electric future, illuminated.</div>
 
   <div class="gif-slot" id="gifSlot">
-    <!-- TO ADD YOUR GIF: replace "" with your gif path or URL, e.g. src="wattson_demo.gif" -->
-    <img id="gifImg" src="" alt="Wattson demo" />
-    <div class="gif-placeholder" id="gifPlaceholder">
-      <svg class="gif-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="6" width="32" height="24" rx="3" stroke="#5AAAE8" stroke-width="1.5"/>
-        <circle cx="13" cy="16" r="3.5" stroke="#5AAAE8" stroke-width="1.5"/>
-        <path d="M2 25l8-7 6 5 5-4 13 11" stroke="#5AAAE8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <p>Add your GIF — see comment in source</p>
-    </div>
+    <video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;border-radius:11px;">
+      <source src="https://raw.githubusercontent.com/aestew/california_peak_demand_cmip6/main/wattson_app/images/climateFEAT_319.mp4" type="video/mp4">
+    </video>
   </div>
 
   <p class="desc">Explore county-level peak electricity demand forecasts for California through 2040 — powered by 25 CMIP6 ensemble members, a five-stream transformer, and a RAG chat interface.</p>
 
   <div class="cta-group">
-    <!-- TO ADD STREAMLIT URL: replace YOUR_STREAMLIT_URL below -->
     <a href="https://steward-climatefeat.streamlit.app/" target="_blank" rel="noopener" class="btn-launch">Launch Wattson →</a>
     <div class="divider-line"></div>
-    <a
-      href="mailto:asteward@berkeley.edu?subject=I%27d%20like%20to%20access%20Wattson!"
-      class="btn-request"
-    >Request access</a>
+    <a href="mailto:asteward@berkeley.edu?subject=I%27d%20like%20to%20access%20Wattson!" class="btn-request">Request access</a>
     <p class="access-note">Access is by request — send a note and I'll get back to you.</p>
   </div>
 
