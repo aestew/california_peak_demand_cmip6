@@ -265,6 +265,7 @@ hr {
 }
             
 [data-testid="stSidebarNav"] { display: none !important; }
+            
 
 [data-testid="stMarkdownContainer"] strong {
   color: var(--accent) !important;
