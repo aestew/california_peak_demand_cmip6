@@ -20,25 +20,24 @@ with col1:
     st.image("https://raw.githubusercontent.com/aestew/california_peak_demand_cmip6/refs/heads/main/wattson_app/images/amy.png", caption="### Amy Steward")
     # st.subheader("Amy Steward")
     st.write("**Role:** Lead Researcher, ML Engineer")
-    st.write("Fill in")
+   
 
 with col2:
     st.image("https://raw.githubusercontent.com/aestew/california_peak_demand_cmip6/refs/heads/main/wattson_app/images/chad.png", caption="### Chad Adelman")
     # st.subheader("Chad Adelman")
     st.write("**Role:** RAG Evaluator & Data Support")
-    st.write("Fill in")
+    
 
 with col3:
     st.image("https://raw.githubusercontent.com/aestew/california_peak_demand_cmip6/refs/heads/main/wattson_app/images/kristen.png", caption="### Kristen Lin")
     # st.subheader("Kristen Lin")
     st.write("**Role:** Data Infra")
-    st.write("Built the Streamlit UI... Fill in")
 
 with col4:
     st.image("https://raw.githubusercontent.com/aestew/california_peak_demand_cmip6/refs/heads/main/wattson_app/images/vishnu.png", caption="### Vishnu Gorur")
     # st.subheader("Vishnu Gorur")
     st.write("**Role:** GenAI Engineer")
-    st.write("Fill in")
+
 
 # --- Contact Section ---
 st.divider()
