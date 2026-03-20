@@ -278,6 +278,14 @@ hr {
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-border); }
 </style>
 """, unsafe_allow_html=True)
+# ---------------------------------------------------------------------------
+# SIDEBAR SITUATION
+# ---------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown("**Pages**")
+    st.page_link("wattson_draft.py", label="ClimateFEAT Explorer", icon="🗺️")
+    st.page_link("pages/data_explorer.py", label="Data Explorer", icon="🔍")
+    st.page_link("pages/about_the_team.py", label="About the Team", icon="👥")
 
 # ---------------------------------------------------------------------------
 # PATHS & API KEYS
