@@ -6,8 +6,10 @@ Connects to Vishnu's FastAPI RAG backend for data queries.
 """
 
 import os
+import re
 import streamlit as st
 import requests
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Data Explorer — ClimateFEAT", page_icon="🔍", layout="wide")
 
@@ -279,7 +281,90 @@ def query_api(question: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# HEADER
+# AUTO-CHART: detect chartable patterns in answers
+# ---------------------------------------------------------------------------
+CHART_COLORS = ['#5AAAE8', '#4E8878', '#8AA8A0', '#E8A85A', '#E85A8A',
+                '#A85AE8', '#5AE8A8', '#E8E85A', '#5A8AE8', '#E85A5A']
+
+def try_make_chart(answer_text):
+    """Parse answer text for chartable data. Returns a plotly fig or None."""
+
+    # Pattern 1: Two-entity comparison (e.g. "**Los Angeles** ... 269,731 MWh")
+    compare = re.findall(
+        r'\*\*([A-Za-z ]+(?:County)?)\*\*[^*]*?[\$]?([\d,]+\.?\d*)\s*(MWh|MW|%|USD|vehicles|BEVs?)',
+        answer_text
+    )
+    if len(compare) >= 2:
+        names = [c[0].strip() for c in compare[:6]]
+        vals = [float(c[1].replace(',', '')) for c in compare[:6]]
+        unit = compare[0][2]
+        fig = go.Figure(go.Bar(
+            x=names, y=vals,
+            marker_color=CHART_COLORS[:len(names)],
+            text=[f"{v:,.0f}" for v in vals], textposition='outside',
+            textfont=dict(color='#8AA8A0', size=12),
+        ))
+        fig.update_layout(
+            yaxis_title=unit, height=300, template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(t=20, b=40, l=60, r=20),
+            font=dict(family="Manrope", color="#8AA8A0"),
+            xaxis=dict(tickfont=dict(size=12)),
+            yaxis=dict(gridcolor="rgba(90,170,232,0.08)"),
+        )
+        return fig
+
+    # Pattern 2: Ranked list (e.g. "1 | Marin | $173,436" or "1. Marin ... $173,436")
+    ranking = re.findall(
+        r'(?:\|\s*\d+\s*\|\s*|\d+\.\s+)\*?\*?([A-Z][a-z ]+)\*?\*?[^$\d]*[\$]?([\d,]+\.?\d*)',
+        answer_text
+    )
+    if len(ranking) >= 3:
+        names = [r[0].strip() for r in ranking[:10]]
+        vals = [float(r[1].replace(',', '')) for r in ranking[:10]]
+        fig = go.Figure(go.Bar(
+            x=vals, y=names, orientation='h',
+            marker_color=CHART_COLORS[0],
+            text=[f"${v:,.0f}" if v > 1000 else f"{v:,.0f}" for v in vals],
+            textposition='outside',
+            textfont=dict(color='#8AA8A0', size=11),
+        ))
+        fig.update_layout(
+            height=max(250, len(names) * 38), template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(t=20, b=20, l=130, r=80),
+            yaxis=dict(autorange="reversed"),
+            font=dict(family="Manrope", color="#8AA8A0"),
+            xaxis=dict(gridcolor="rgba(90,170,232,0.08)"),
+        )
+        return fig
+
+    # Pattern 3: Year-over-year (e.g. "2020 ... 16,585" and "2021 ... 20,846")
+    yoy = re.findall(
+        r'(?:20[12]\d)[^\d]*?([\d,]+\.?\d*)',
+        answer_text
+    )
+    years_found = re.findall(r'(20[12]\d)', answer_text)
+    if len(years_found) >= 2 and len(yoy) >= 2:
+        unique_years = list(dict.fromkeys(years_found))[:5]
+        vals = [float(v.replace(',', '')) for v in yoy[:len(unique_years)]]
+        if len(vals) == len(unique_years) and all(v > 0 for v in vals):
+            fig = go.Figure(go.Bar(
+                x=unique_years, y=vals,
+                marker_color=CHART_COLORS[:len(unique_years)],
+                text=[f"{v:,.0f}" for v in vals], textposition='outside',
+                textfont=dict(color='#8AA8A0', size=12),
+            ))
+            fig.update_layout(
+                height=300, template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                margin=dict(t=20, b=40, l=60, r=20),
+                font=dict(family="Manrope", color="#8AA8A0"),
+                yaxis=dict(gridcolor="rgba(90,170,232,0.08)"),
+            )
+            return fig
+
+    return None
 # ---------------------------------------------------------------------------
 st.title("Data Explorer")
 st.caption("Query the ClimateFEAT dataset // powered by FastAPI RAG backend")
@@ -324,9 +409,13 @@ with left_col:
                 if msg.get("citations"):
                     cites = msg["citations"]
                     if isinstance(cites, list) and len(cites) > 0:
-                        # Show first 5 citations max
                         cite_strs = [str(c)[:80] for c in cites[:5]]
                         st.caption("Sources: " + " · ".join(cite_strs))
+                # Auto-generate chart from answer text
+                if msg["role"] == "assistant":
+                    fig = try_make_chart(msg["content"])
+                    if fig:
+                        st.plotly_chart(fig, use_container_width=True)
 
     # Input
     user_input = st.chat_input(
