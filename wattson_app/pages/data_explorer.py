@@ -128,6 +128,9 @@ hr {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
 [data-testid="stSidebarNav"] { display: none !important; }
+[data-testid="stSidebarNav"] { display: none !important; }
+[data-testid="stSidebarNavItems"] { display: none !important; }
+section[data-testid="stSidebar"] nav { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
