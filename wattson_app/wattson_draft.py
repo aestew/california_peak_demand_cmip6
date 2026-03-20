@@ -263,6 +263,8 @@ hr {
   background: linear-gradient(90deg, transparent, var(--accent-border), transparent) !important;
   margin: 8px auto !important;
 }
+            
+[data-testid="stSidebarNav"] { display: none !important; }
 
 [data-testid="stMarkdownContainer"] strong {
   color: var(--accent) !important;

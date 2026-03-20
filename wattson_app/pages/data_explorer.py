@@ -127,6 +127,7 @@ hr {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+[data-testid="stSidebarNav"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -192,7 +193,7 @@ with st.sidebar:
     st.markdown("**Pages**")
     st.page_link("wattson_draft.py", label="ClimateFEAT Explorer", icon="🗺️")
     st.page_link("pages/data_explorer.py", label="Data Explorer", icon="🔍")
-    st.page_link("pages/about_the_team.py", label="About the Team", icon="👥")
+    st.page_link("pages/about_team.py", label="About the Team", icon="👥")
 
 # ---------------------------------------------------------------------------
 # MOCK RESPONSES (for testing without FastAPI)
