@@ -192,6 +192,7 @@ with st.sidebar:
     st.markdown("**Pages**")
     st.page_link("wattson_draft.py", label="ClimateFEAT Explorer", icon="🗺️")
     st.page_link("pages/data_explorer.py", label="Data Explorer", icon="🔍")
+    st.page_link("pages/about_team.py", label="About the Team", icon="👥")
 
 # ---------------------------------------------------------------------------
 # MOCK RESPONSES (for testing without FastAPI)
