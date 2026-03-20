@@ -350,18 +350,49 @@ with left_col:
         st.rerun()
 
 with right_col:
-    st.markdown("#### How it works")
+    st.markdown("#### What's under the hood")
     st.markdown("""
-    This page connects to a **FastAPI backend** that queries the ClimateFEAT dataset using a RAG pipeline.
-
-    **Data queries** — county-level lookups, rankings, comparisons, and time-series questions are decomposed into SQL and answered from the structured dataset.
-
-    **Domain questions** — methodology, climate science, and policy context are answered from a curated document corpus.
+    This isn't your average chatbot. Your question gets disassembled,
+    routed through multiple agents, and reassembled into an answer.
+    Think of it as a tiny research team that argues about your question
+    before giving you one clean answer.
     """)
 
     st.divider()
 
-    st.markdown("#### Sample questions")
+    st.markdown("**1 · Query Decomposition**")
+    st.markdown("""
+    Your question gets broken into focused sub-queries, each tagged
+    by type — `COMPUTATIONAL`, `CAUSAL`, `COUNTERFACTUAL`,
+    `QUANTITATIVE_CAUSAL`. If it can't be answered, it says so.
+    """)
+
+    st.markdown("**2 · The Orchestrator**")
+    st.markdown("""
+    A Map-Reduce router fans sub-queries out in parallel.
+    Computational questions go to Tree-of-Thought planning.
+    Causal questions hit the document corpus. Counterfactuals
+    get flagged as unsupported (honestly).
+    """)
+
+    st.markdown("**3 · Dual Retrieval**")
+    st.markdown("""
+    Structured data lives in **DynamoDB** — queried with
+    time-window filters, extreme-event detection, and aggregation
+    operators. Unstructured context lives in **S3 vectors** embedded
+    with Jina v2, retrieved and reranked before synthesis.
+    """)
+
+    st.markdown("**4 · Answer Synthesis**")
+    st.markdown("""
+    An explanatory agent and a predictive agent each take a pass.
+    A synthesis node merges their outputs into one response with
+    citations. If the data doesn't support the claim, it won't make one.
+    """)
+
+    st.divider()
+
+    st.markdown("#### Try these")
     st.markdown("""
     - What was the ratio of hot to cold days in Santa Cruz?
     - How many BEVs were in Alameda in 2019?
