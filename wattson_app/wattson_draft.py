@@ -496,7 +496,7 @@ with map_col:
         else:
             color_col = f"peak_{pct_key}_mean"
             color_label = "Peak demand (MWh)"
-        color_scale = "YlOrRd"
+        color_scale = "RdYlGn_r"
         color_range = None
 
     def dynamic_range(series):
