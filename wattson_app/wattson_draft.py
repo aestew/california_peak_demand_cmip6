@@ -583,7 +583,7 @@ with map_col:
             + "<br><span style='font-size:2px'> </span><br>"
             + f"<span style='font-size:18px'>{color_metric}: %{{z:,.1f}}{unit}</span>"
             + "<br><span style='font-size:2px'> </span><br>"
-            + + "<span style='font-size:16px'>2025 baseline: %{customdata[0]:,.0f} MWh</span>"
+            + "<span style='font-size:16px'>2025 baseline: %{customdata[0]:,.0f} MWh</span>"
         )
     )
     fig_map.update_layout(
