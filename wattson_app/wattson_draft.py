@@ -534,19 +534,7 @@ with map_col:
             center={"lat": 37.5, "lon": -119.5},
             opacity=0.8,
             hover_name="tac",
-            hover_data={
-                "tac": False,
-                color_col: False,
-                f"peak_{pct_key}_mean": ":.0f",
-                f"peak_{pct_key}_p10": ":.0f",
-                f"peak_{pct_key}_p90": ":.0f",
-            },
-            labels={
-                f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
-                f"peak_{pct_key}_p10": "10th Pct",
-                f"peak_{pct_key}_p90": "90th Pct",
-                color_col: color_label,
-            },
+
         )
         fig_map.update_traces(marker_line_color="black", marker_line_width=1.2)
         map_data = county_df[
@@ -583,27 +571,21 @@ with map_col:
             center={"lat": 37.5, "lon": -119.5},
             opacity=0.8,
             hover_name="county",
-            hover_data={
-                "fips": False,
-                color_col: False,
-                f"peak_{pct_key}_mean": ":.0f",
-                f"peak_{pct_key}_p10": ":.0f",
-                f"peak_{pct_key}_p90": ":.0f",
-                f"peak_{pct_key}_pct_change_vs_2025": ":.1f",
-                "tac_area": True,
-                "peak_month_mode": ":.0f",
-            },
-            labels={
-                f"peak_{pct_key}_mean": f"{peak_type} Peak (MWh)",
-                f"peak_{pct_key}_p10": "10th Pct",
-                f"peak_{pct_key}_p90": "90th Pct",
-                f"peak_{pct_key}_pct_change_vs_2025": "Growth vs 2025 (%)",
-                "tac_area": "TAC Area",
-                "peak_month_mode": "Peak Month",
-                color_col: color_label,
-            },
+            
         )
-
+    unit = "%" if use_pct else " MWh"
+    baseline_col = f"peak_{pct_key}_baseline_2025"
+    fig_map.update_traces(
+        customdata=map_data[[baseline_col]].values if not use_tac else tac_data[[baseline_col]].values,
+        hovertemplate=(
+            "<b>%{hovertext}</b><br>"
+            + scenario + "<br>"
+            + color_metric + "<br>"
+            + "%{z:,.1f}" + unit + "<br>"
+            + "(%{customdata[0]:,.0f} MWh baseline)"
+            + "<extra></extra>"
+        )
+    )
     fig_map.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         height=MAP_HEIGHT,
