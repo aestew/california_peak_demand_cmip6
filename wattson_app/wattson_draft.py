@@ -516,8 +516,8 @@ with map_col:
         tac_data["_peak_pct_of_2025"] = (
             tac_data[f"peak_{pct_key}_mean"]
             / tac_data[f"peak_{pct_key}_baseline_2025"]
-            * 100
-        )
+            -1
+        )*100
         if color_metric == "Growth vs 2025":
             tac_data[color_col] = tac_data[color_col].fillna(0)
         color_range = dynamic_range(tac_data[color_col].dropna())
@@ -565,8 +565,8 @@ with map_col:
         map_data["_peak_pct_of_2025"] = (
             map_data[f"peak_{pct_key}_mean"]
             / map_data[f"peak_{pct_key}_baseline_2025"]
-            * 100
-        )
+            -1
+        )*100
         if color_metric == "Growth vs 2025":
             map_data[color_col] = map_data[color_col].fillna(0)
         color_range = dynamic_range(map_data[color_col].dropna())
