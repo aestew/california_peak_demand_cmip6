@@ -578,13 +578,12 @@ with map_col:
     fig_map.update_traces(
         customdata=map_data[[baseline_col]].values if not use_tac else tac_data[[baseline_col]].values,
         hovertemplate=(
-            "<b style='font-size:18px'>%{hovertext}</b>"
-            + f"<span style='font-size:18px'> — {scenario}</span>"
+            "<b style='font-size:18px'>%{hovertext}</b><br>"
+            + f"<span style='font-size:12px'> — {scenario}</span>"
             + "<br><span style='font-size:2px'> </span><br>"
             + f"<span style='font-size:18px'>{color_metric}: %{{z:,.1f}}{unit}</span>"
             + "<br><span style='font-size:2px'> </span><br>"
-            + "<span style='font-size:18px'>(%{customdata[0]:,.0f} MWh 2025 baseline)</span>"
-            + "<extra></extra>"
+            + + "<span style='font-size:16px'>2025 baseline: %{customdata[0]:,.0f} MWh</span>"
         )
     )
     fig_map.update_layout(
