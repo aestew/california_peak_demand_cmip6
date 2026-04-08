@@ -580,8 +580,8 @@ with map_col:
         hovertemplate=(
             "<b>%{hovertext}</b><br>"
             + scenario + "<br>"
-            + color_metric + 
-            + ": %{z:,.1f}" + unit + "<br>"
+            + color_metric 
+            + ":%{z:,.1f}" + unit + "<br>"
             + "(%{customdata[0]:,.0f} MWh baseline)"
             + "<extra></extra>"
         )
