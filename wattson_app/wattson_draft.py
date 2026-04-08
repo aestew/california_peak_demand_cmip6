@@ -580,10 +580,10 @@ with map_col:
         hovertemplate=(
             "<b style='font-size:18px'>%{hovertext}</b>"
             + f"<span style='font-size:18px'> — {scenario}</span>"
-            + "<br><span style='font-size:5px'> </span><br>"
-            + f"<span style='font-size:16px'>{color_metric}: %{{z:,.1f}}{unit}</span>"
-            + "<br><span style='font-size:5px'> </span><br>"
-            + "<span style='font-size:16px'>(%{customdata[0]:,.0f} MWh 2025 baseline)</span>"
+            + "<br><span style='font-size:2px'> </span><br>"
+            + f"<span style='font-size:18px'>{color_metric}: %{{z:,.1f}}{unit}</span>"
+            + "<br><span style='font-size:2px'> </span><br>"
+            + "<span style='font-size:18px'>(%{customdata[0]:,.0f} MWh 2025 baseline)</span>"
             + "<extra></extra>"
         )
     )
