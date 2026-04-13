@@ -297,7 +297,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 .footer-links a:hover { color: var(--accent); }
 
 /* DIVIDER */
-.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--accent-border), transparent); margin: 0 auto; max-width: 400px; }
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--accent-border), transparent); margin: 0 auto; max-width: 150px; }
 
 /* ANIMATIONS */
 @keyframes fadeUp {
@@ -340,7 +340,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 
 <section class="hero">
   <div class="container">
-    <div class="hero-label">Climate-Forward Electricity &amp; Forecasting <br> supporting blackout prevention</div>
+    <div class="hero-label">Climate-Forward Electricity Forecasting <br> Agentic Retrival Tool <br> supporting blackout prevention</div>
 
     <div class="hero-brand"><span class="bl">SMRT</span>-GridCA</div>
     <div class="hero-brand-sub"><span class="bl">S</span><span class="gr">tatewide </span><span class="bl">M</span><span class="gr">apping and </span><span class="bl">R</span><span class="gr">etrieval </span><span class="bl">T</span><span class="gr">oolkit</span></div>
@@ -364,7 +364,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
   <div class="container">
     <div class="reveal">
       <div class="section-label">What does this model learn from?</div>
-      <div class="section-title">Electricity Demand Forecasting learned through every California's experience.</div>
+      <div class="section-title">Electricity Demand Forecasting. Experienced through Agentic Retrival</div>
       <p class="section-desc">Peak Electricity Demand forecased using <b>neighborhood-level data</b>, with <b>high-resolution models.</b> We use hyper-local climate impacts to forecast accurate peak electricity demand in California. <a href="https://github.com/aestew/california_peak_demand_cmip6/tree/main/pipeline" class="github-link">See pipeline on GitHub →</a></p>
     </div>
     <div class="pipeline-grid">
@@ -375,17 +375,18 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
         <div class="tech">URMA 2.5km · WorldPop · xarray · Dask</div>
       </div>
       <div class="pipeline-card reveal">
+        <div class="pipeline-step">02 — Agentic Retrival</div>
+        <h3>Agentic Reasoning</h3>
+        <p>An agentic RAG layer decomposes complex questions into subqueries, retrieves relevant structured and unstructured data, and synthesizes results through an auditable reasoning process. This allows users to explore forecasts, validate assumptions, and generate insights in real time.</p>
+        <div class="tech">Feature Streams · PyTorch · MLflow · county embeddings · 2-phase attention</div>
+      </div>
+      <div class="pipeline-card reveal">
         <div class="pipeline-step">02 — Hyper-local Climate Forecasts</div>
         <h3>Frontier Climate Forecasts</h3>
         <p>Cutting-edge climate forecasts mapped . Helping Californians be prepared for the next 15 years through accounting for outcome probabilities. </p>
         <div class="tech">LOCA2-Hybrid · 7 GCMs · SSP2-4.5 · SSP3-7.0</div>
       </div>
-      <div class="pipeline-card reveal">
-        <div class="pipeline-step">03 — Forecasting using real interactions</div>
-        <h3>Five Sensing Layers</h3>
-        <p>Models calibrated to learn complex interactions between weather, location, and lived experiences to provide customizable demand outcomes.</p>
-        <div class="tech">Feature Streams · PyTorch · MLflow · county embeddings · 2-phase attention</div>
-      </div>
+      
     </div>
 
     <!-- Data citations -->
@@ -462,7 +463,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
     </div>
     <div class="cec-grid reveal">
       <div class="cec-col ours">
-        <h4>ClimateFEAT</h4>
+        <h4>SMRT-GridCA</h4>
         <div class="cec-item">Spatial resolution <span>URMA 2.5 km</span></div>
         <div class="cec-item">Population weighting <span>WorldPop gridded</span></div>
         <div class="cec-item">Climate models <span>25 members / 7 GCMs</span></div>
@@ -523,7 +524,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
   <div class="container">
     <div class="footer-inner">
       <div class="footer-left">
-        <strong style="color:var(--text-primary)">ClimateFEAT</strong> — UC Berkeley MIDS Capstone, 2026<br>
+        <strong style="color:var(--text-primary)">SMRT-GridCA</strong> — UC Berkeley MIDS Capstone, 2026<br>
         Built by <a href="#">Amy</a> · <a href="#">GitHub</a> · <a href="#">LinkedIn</a>
       </div>
       <div class="footer-links">
