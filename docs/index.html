@@ -405,120 +405,6 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 
 <div class="divider"></div>
 
-<section id="architecture">
-  <div class="container">
-    <div class="reveal">
-      <div class="section-label">Architecture</div>
-      <div class="section-title">Five Layers, one forecast</div>
-    </div>
-    <div class="arch-section">
-      <div class="arch-text reveal">
-        <h3>Why multiple sensing layers?</h3>
-        <p>Peak electricity demand isn't driven by any single factor. It emerges from the interaction of extreme heat, population growth, EV adoption curves, datacenter buildout, and the built environment's thermal inertia.</p>
-        <p>The five-stream sensing layer architecture treats each domain as a separate token sequence. County embeddings are prepended as learned context vectors, allowing the model to capture county-specific demand signatures that a flat feature vector would miss.</p>
-        <p>Cross-stream attention then lets the model learn the interactions — how a heatwave's impact on demand differs in a county with high EV penetration versus one with expanding datacenter load.</p>
-      </div>
-      <div class="arch-detail reveal">
-        <h4>Input streams</h4>
-        <ul class="stream-list">
-          <li><span class="dot"></span><div><span class="stream-name">Weather + Time</span> — Temperature, humidity, solar radiation, wind, temporal encoding</div></li>
-          <li><span class="dot"></span><div><span class="stream-name">Extended Weather Patterns + Time</span> — 3/7/14-day rolling aggregations capturing thermal accumulation</div></li>
-          <li><span class="dot"></span><div><span class="stream-name">Geography / Demographics</span> — Population density, urban fraction, elevation, climate zone</div></li>
-          <li><span class="dot"></span><div><span class="stream-name">Heatwave Patterns</span> — Duration, intensity, and nighttime recovery metrics</div></li>
-          <li><span class="dot"></span><div><span class="stream-name">Planning for a sustainable future</span> — Datacenter capacity, BEV adoption trajectories, grid infrastructure</div></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<section id="results">
-  <div class="container">
-    <div class="reveal">
-      <div class="section-label">The nitty-gritty</div>
-      <div class="section-title">Model performance</div>
-      <p class="section-desc">Trained on 2018–2021, validated on 2022, tested on the 2023 holdout year. The transformer beats the LightGBM baseline on test data where it matters most — unseen conditions. <a href="https://github.com/aestew/california_peak_demand_cmip6/tree/main/models" class="github-link">See code on GitHub →</a></p>
-    </div>
-    <div class="results-grid reveal">
-      <div class="result-card">
-        <div class="model-name">Multi-stream transformer</div>
-        <div class="metric-row"><span class="metric-label">Validation RMSE</span><span class="metric-value">139 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Validation RMSE %</span><span class="metric-value">12.0%</span></div>
-        <div class="metric-row"><span class="metric-label">Test RMSE</span><span class="metric-value highlight">172 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Test RMSE %</span><span class="metric-value highlight">14.8%</span></div>
-      </div>
-      <div class="result-card">
-        <div class="model-name" style="color:var(--green-muted)">LightGBM v4 baseline</div>
-        <div class="metric-row"><span class="metric-label">Validation RMSE</span><span class="metric-value">141 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Validation RMSE %</span><span class="metric-value">12.0%</span></div>
-        <div class="metric-row"><span class="metric-label">Test RMSE</span><span class="metric-value">199 MWh</span></div>
-        <div class="metric-row"><span class="metric-label">Test RMSE %</span><span class="metric-value">17.4%</span></div>
-      </div>
-    </div>
-    <div class="comparison-note reveal">
-      <strong>vs. CEC 2024 IEPR:</strong> The California Energy Commission uses ~33 airport weather stations and 8 single-member WRF runs. ClimateFEAT uses URMA at 2.5 km with WorldPop population weighting and 25 CMIP6 ensemble members across 7 global climate models — substantially higher spatial resolution and deeper uncertainty quantification.
-    </div>
-    <div class="cec-grid reveal">
-      <div class="cec-col ours">
-        <h4>SMRT-GridCA</h4>
-        <div class="cec-item">Spatial resolution <span>URMA 2.5 km</span></div>
-        <div class="cec-item">Population weighting <span>WorldPop gridded</span></div>
-        <div class="cec-item">Climate models <span>25 members / 7 GCMs</span></div>
-        <div class="cec-item">Scenarios <span>SSP2-4.5, SSP3-7.0</span></div>
-        <div class="cec-item">Datacenter baseline <span>2,269 MW (2024)</span></div>
-      </div>
-      <div class="cec-col theirs">
-        <h4>CEC 2024 IEPR</h4>
-        <div class="cec-item">Spatial resolution <span>~33 airport stations</span></div>
-        <div class="cec-item">Population weighting <span>None</span></div>
-        <div class="cec-item">Climate models <span>8 WRF single-member</span></div>
-        <div class="cec-item">Scenarios <span>RCP 4.5</span></div>
-        <div class="cec-item">Datacenter baseline <span>987 MW (2024)</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<section>
-  <div class="container">
-    <div class="reveal">
-      <div class="section-label">Data scope</div>
-      <div class="section-title">What goes in</div>
-    </div>
-    <div class="data-points reveal">
-      <div class="data-point"><div class="val">7</div><div class="desc">CMIP6 global<br>climate models</div></div>
-      <div class="data-point"><div class="val">2</div><div class="desc">SSP warming<br>scenarios</div></div>
-      <div class="data-point"><div class="val">4,123</div><div class="desc">MW projected DC<br>load by 2040</div></div>
-      <div class="data-point"><div class="val">78,570</div><div class="desc">MW firm + storage<br>CA capacity</div></div>
-    </div>
-    <p class="section-desc reveal" style="max-width:800px">The CLEAN_ENSEMBLE for SSP3-7.0 includes ACCESS-CM2, EC-Earth3, EC-Earth3-Veg, GFDL-ESM4, INM-CM5-0, MPI-ESM1-2-HR, and MRI-ESM2-0. Datacenter projections assembled from datacenters.com with daily granularity 2016–2040 by county and TAC area. LOCA2-Hybrid was chosen over WRF for scenario coverage and ensemble depth.</p>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<section id="demo" class="demo-section">
-  <div class="container">
-    <div class="reveal">
-      <div class="section-label">Interactive app</div>
-      <div class="section-title">Experience SMRT-GridCA</div>
-      <p class="section-desc">Explore the forecasts yourself. SMRT-GridCA is a Streamlit application with choropleth maps, time-series forecasts, and a RAG-powered chat interface backed by a cited 20-document corpus on California energy planning.</p>
-    </div>
-    <div class="demo-features reveal">
-      <div class="demo-feature"><h4>Choropleth map</h4><p>County-level peak demand visualized across California, with scenario and year selectors.</p></div>
-      <div class="demo-feature"><h4>Forecast time series</h4><p>Compare transformer projections against LightGBM and CEC baselines across SSP 245 (hot) and SSP 370 (hotter) scenarios through 2040.</p></div>
-      <div class="demo-feature"><h4>RAG chat</h4><p>Ask questions about the methodology, data, or results. Powered by ChromaDB with 438 embedded chunks via Voyage AI.</p></div>
-    </div>
-    <div class="reveal">
-      <a href="#" class="btn-primary" style="font-size:16px;padding:14px 36px">Launch SMRT-GridCA →</a>
-    </div>
-  </div>
-</section>
-
 <footer>
   <div class="container">
     <div class="footer-inner">
@@ -526,11 +412,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
         <strong style="color:var(--text-primary)">SMRT-GridCA</strong> — UC Berkeley MIDS Capstone, 2026<br>
         Built by <a href="#">Amy</a> · <a href="#">GitHub</a> · <a href="#">LinkedIn</a>
       </div>
-      <div class="footer-links">
-        <a href="#">Paper (forthcoming)</a>
-        <a href="#">CEC presentation</a>
-        <a href="#">Contact</a>
-      </div>
+
     </div>
   </div>
 </footer>
