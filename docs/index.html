@@ -224,6 +224,74 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
 }
 .github-link:hover { opacity: 1; text-decoration: underline; }
 
+/* TEAM */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.team-member {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 24px 20px;
+  backdrop-filter: blur(8px);
+  text-align: center;
+  transition: border-color .3s, transform .3s;
+}
+.team-member:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+.team-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 16px;
+  display: block;
+  border: 2px solid var(--card-border);
+  transition: border-color .3s;
+}
+.team-member:hover .team-photo {
+  border-color: var(--accent-border);
+}
+.team-name {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+.team-role {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-body);
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+.team-github {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+  opacity: .75;
+  transition: opacity .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.team-github:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+.team-github svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
 /* ARCHITECTURE */
 .arch-section { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
 .arch-text h3 { font-family: var(--serif); font-size: 24px; font-weight: 600; margin-bottom: 14px; }
@@ -315,13 +383,16 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
   .hero-stats { flex-wrap: wrap; gap: 24px; }
   .hero-ctas { flex-direction: column; }
   .pipeline-grid, .arch-section, .results-grid, .cec-grid { grid-template-columns: 1fr; }
-  .data-points { grid-template-columns: repeat(2, 1fr); }
+  .data-points, .team-grid { grid-template-columns: repeat(2, 1fr); }
   .demo-features { grid-template-columns: 1fr; }
   .nav-links { display: none; }
   .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
 }
+@media (max-width: 480px) {
+  .team-grid { grid-template-columns: 1fr; max-width: 280px; margin: 0 auto; }
+}
 </style>
-</head> 
+</head>
 <body>
 <div class="bg-gradient"></div>
 <canvas id="hero-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;transition:opacity .1s"></canvas>
@@ -331,6 +402,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
     <a href="#" class="nav-brand"><span>SMRT</span>GridCA</a>
     <ul class="nav-links">
       <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#team">Team</a></li>
     </ul>
   </div>
 </nav>
@@ -401,13 +473,62 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 
 <div class="divider"></div>
 
+<!-- TEAM SECTION -->
+<section id="team">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">UC Berkeley MIDS · 2026</div>
+      <div class="section-title">The Team</div>
+    </div>
+    <div class="team-grid">
+      <div class="team-member reveal">
+        <img class="team-photo" src="amy.png" alt="Amy Steward">
+        <div class="team-name">Amy Steward</div>
+        <div class="team-role">Data Scientist &<br>Technical PM</div>
+        <a class="team-github" href="https://github.com/amy-steward" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <div class="team-member reveal">
+        <img class="team-photo" src="kristen.png" alt="Kristen Lin">
+        <div class="team-name">Kristen Lin</div>
+        <div class="team-role">Data Engineering<br>and Infra Lead</div>
+        <a class="team-github" href="https://github.com/kristen-lin" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <div class="team-member reveal">
+        <img class="team-photo" src="vishnu.png" alt="Vishnu Gorur">
+        <div class="team-name">Vishnu Gorur</div>
+        <div class="team-role">GenAI & Machine<br>Learning Lead</div>
+        <a class="team-github" href="https://github.com/vishnu-gorur" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <div class="team-member reveal">
+        <img class="team-photo" src="chad.png" alt="Chad Adelman">
+        <div class="team-name">Chad Adelman</div>
+        <div class="team-role">Data Pipeline &<br>Model Evaluation</div>
+        <a class="team-github" href="https://github.com/chad-adelman" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
 <footer>
   <div class="container">
     <div class="footer-inner">
       <div class="footer-left">
         <strong style="color:var(--text-primary)">SMRT-GridCA</strong> — UC Berkeley MIDS Capstone, 2026<br>
       </div>
-
     </div>
   </div>
 </footer>
@@ -525,8 +646,8 @@ function drawGrid() {
 function updateCanvasOpacity() {
   let heroEnd = document.querySelector('.hero').offsetTop + document.querySelector('.hero').offsetHeight;
   let scrollY = window.scrollY;
-  let fadeStart = heroEnd * 0.4;
-  let fadeEnd = heroEnd * 0.95;
+  let fadeStart = heroEnd * 0.7;
+  let fadeEnd = heroEnd * 1.4;
   let opacity = 1;
   if (scrollY > fadeStart) {
     opacity = 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart);
