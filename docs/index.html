@@ -91,7 +91,7 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
 .nav-links a:hover { color: var(--accent); }
 
 /* HERO */
-.hero { padding: 160px 0 30px; }
+.hero { padding: 160px 0 15px; }
 .hero-label {
   font-family: var(--mono); font-size: 12px; color: var(--green-muted);
   letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px;
@@ -136,7 +136,7 @@ nav .container { display: flex; align-items: center; justify-content: space-betw
   opacity:0; animation: fadeUp .8s ease forwards .65s;
 }
 .hero-stats {
-  display: flex; gap: 40px; margin-bottom: 40px;
+  display: flex; gap: 40px; margin-bottom: 24px;
   opacity:0; animation: fadeUp .8s ease forwards .8s;
 }
 .hero-stat .number {
@@ -311,7 +311,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
 @media (max-width: 768px) {
   .container { padding: 0 20px; }
   section { padding: 64px 0; }
-  .hero { padding: 140px 0 80px; }
+  .hero { padding: 20px 0 10px; }
   .hero-stats { flex-wrap: wrap; gap: 24px; }
   .hero-ctas { flex-direction: column; }
   .pipeline-grid, .arch-section, .results-grid, .cec-grid { grid-template-columns: 1fr; }
@@ -321,7 +321,7 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
   .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
 }
 </style>
-</head>
+</head> 
 <body>
 <div class="bg-gradient"></div>
 <canvas id="hero-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;transition:opacity .1s"></canvas>
@@ -354,7 +354,6 @@ footer { padding: 48px 0; border-top: 1px solid var(--border); }
     </div>
     <div class="hero-ctas">
       <a href="wattson_landing.html" class="btn-primary">Explore SMRT-GridCA →</a>
-      <a href="#methodology" class="btn-ghost">How was this built?</a>
     </div>
   </div>
 </section>
