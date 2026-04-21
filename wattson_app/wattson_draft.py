@@ -430,29 +430,101 @@ st.caption(
     "// 58 counties // 2018-2040 // CMIP6 ensemble uncertainty"
 )
 st.markdown(
-    '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;'
-    'margin:12px 0 8px 0;">'
+    '<div style="margin:14px 0 8px 0;">'
+    '<div style="display:block;margin-bottom:4px;">'
     '<a href="/tech_behind_this" target="_self" '
-    'style="font-family:\'Literata\',Georgia,serif;font-size:clamp(20px,2.2vw,26px);'
-    'font-weight:700;font-style:italic;color:var(--accent);'
-    'text-decoration:none;letter-spacing:-0.015em;line-height:1.2;'
+    'style="display:inline-block;'
+    'font-family:\'Inconsolata\',monospace;font-size:16px;font-weight:500;'
+    'color:var(--accent);text-decoration:none;'
+    'letter-spacing:0.08em;text-transform:uppercase;line-height:1.4;'
     'border-bottom:1px solid var(--accent-border);padding-bottom:2px;'
-    'transition:border-color .2s,color .2s;" '
-    'onmouseover="this.style.borderBottomColor=\'var(--accent)\';this.style.color=\'#7DC2F0\'" '
-    'onmouseout="this.style.borderBottomColor=\'var(--accent-border)\';this.style.color=\'var(--accent)\'">'
+    'transition:border-color .2s;" '
+    'onmouseover="this.style.borderBottomColor=\'var(--accent)\'" '
+    'onmouseout="this.style.borderBottomColor=\'var(--accent-border)\'">'
     'How this was built \u2192</a>'
-    '<span style="font-family:\'Inconsolata\',monospace;font-size:12px;'
-    'color:var(--text-dim);letter-spacing:0.05em;">'
+    '</div>'
+    '<div style="display:block;font-family:\'Inconsolata\',monospace;font-size:12px;'
+    'color:var(--text-dim);letter-spacing:0.05em;margin-bottom:14px;">'
     'v2 of MIDS capstone \u00b7 '
     '<a href="https://www.ischool.berkeley.edu/projects/2026/smrt-gridca" '
     'target="_blank" style="color:var(--text-dim);text-decoration:underline;'
     'text-decoration-color:var(--card-border);text-underline-offset:2px;" '
     'onmouseover="this.style.color=\'var(--accent)\'" '
     'onmouseout="this.style.color=\'var(--text-dim)\'">SMRT-GridCA \u2197</a>'
-    '</span>'
+    '</div>'
     '</div>',
     unsafe_allow_html=True,
 )
+
+# --- How to use this app (collapsible) ---
+with st.expander("How to use this app", expanded=False):
+    st.markdown(
+        '<div style="font-family:var(--sans);color:var(--text-body);'
+        'font-size:14px;line-height:1.7;font-weight:300;">'
+
+        '<p style="margin-bottom:14px;">'
+        "Pick a climate future, a year, and what you want to see on the map. "
+        "Then ask Wattson anything that needs context from CEC or CAISO documents."
+        "</p>"
+
+        '<div style="font-family:\'Inconsolata\',monospace;font-size:12px;'
+        'color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;'
+        'margin:16px 0 6px 0;">The four dropdowns</div>'
+
+        '<ul style="margin:0 0 14px 18px;padding:0;">'
+        '<li style="margin-bottom:6px;"><strong style="color:var(--text-primary);">'
+        'Boundaries</strong> \u2014 county-level detail, or roll up to the three '
+        'major utility TAC areas (PGE, SCE, SDGE).</li>'
+        '<li style="margin-bottom:6px;"><strong style="color:var(--text-primary);">'
+        'Emissions scenario</strong> \u2014 SSP3-7.0 is the high-emissions future '
+        '(hotter, more volatile); SSP2-4.5 is the moderate-emissions path.</li>'
+        '<li style="margin-bottom:6px;"><strong style="color:var(--text-primary);">'
+        'Growth or Demand</strong> \u2014 growth shows the change from 2025; demand '
+        'shows the absolute peak in MWh.</li>'
+        '<li style="margin-bottom:6px;"><strong style="color:var(--text-primary);">'
+        '% Change vs. Absolute</strong> \u2014 percentages make small counties legible; '
+        'absolute values show where the biggest MWh gaps actually live.</li>'
+        '</ul>'
+
+        '<div style="font-family:\'Inconsolata\',monospace;font-size:12px;'
+        'color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;'
+        'margin:16px 0 6px 0;">The map + year slider</div>'
+
+        '<p style="margin-bottom:14px;">'
+        "Hover any county or TAC area to see peak demand, growth metrics, and "
+        "the top-1% climate ensemble uncertainty. Drag the year slider "
+        "below the map to move between 2018 and 2040 \u2014 everything recolors in place."
+        "</p>"
+
+        '<div style="font-family:\'Inconsolata\',monospace;font-size:12px;'
+        'color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;'
+        'margin:16px 0 6px 0;">Asking Wattson</div>'
+
+        '<p style="margin-bottom:10px;">'
+        "Wattson retrieves relevant chunks from 20 CEC and ClimateFEAT corpus documents "
+        "before answering. Every response is grounded in those sources and cites them. "
+        "Try questions like:"
+        "</p>"
+        '<ul style="margin:0 0 14px 18px;padding:0;">'
+        '<li style="margin-bottom:4px;"><em style="color:var(--text-primary);">'
+        'How does ClimateFEAT handle humidity differently from CEC\'s IEPR?</em></li>'
+        '<li style="margin-bottom:4px;"><em style="color:var(--text-primary);">'
+        'What counties face the biggest capacity gap under SSP3-7.0?</em></li>'
+        '<li style="margin-bottom:4px;"><em style="color:var(--text-primary);">'
+        'What is the CEC\'s methodology for data center load forecasting?</em></li>'
+        '</ul>'
+
+        '<p style="color:var(--text-dim);font-size:13px;margin-top:14px;'
+        'padding-top:12px;border-top:1px solid var(--border);">'
+        "Heads up: the model was trained on 2018\u20132022 observed weather and demand, "
+        "then run forward through 2040 using downscaled CMIP6 climate ensembles. "
+        "Forecasts carry real uncertainty \u2014 they're best read as "
+        "<em>plausible futures to plan around</em>, not precise predictions."
+        "</p>"
+
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # =====================================================================
 # TOP CONTROLS -- single row of dropdowns
