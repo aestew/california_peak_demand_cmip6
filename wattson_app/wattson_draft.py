@@ -430,7 +430,7 @@ st.caption(
     "// 58 counties // 2018-2040 // CMIP6 ensemble uncertainty"
 )
 st.markdown(
-    '<div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;'
+    '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;'
     'margin:12px 0 8px 0;">'
     '<a href="/tech_behind_this" target="_self" '
     'style="font-family:\'Literata\',Georgia,serif;font-size:clamp(20px,2.2vw,26px);'
