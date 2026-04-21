@@ -424,31 +424,49 @@ MAP_HEIGHT = 600  # px -- map and chat share this height
 # ---------------------------------------------------------------------------
 # HEADER
 # ---------------------------------------------------------------------------
-st.title("ClimateFEAT Explorer")
+# Pill badges above the title (Option D)
 st.markdown(
-    '<div style="margin:-6px 0 18px 0;">'
-    '<div style="display:block;margin-bottom:4px;">'
+    '<div style="display:flex;gap:8px;margin:4px 0 14px 0;flex-wrap:wrap;">'
+
+    # Primary CTA pill -- "How this was built"
     '<a href="/tech_behind_this" target="_self" '
-    'style="display:inline-block;'
-    'font-family:\'Inconsolata\',monospace;font-size:16px;font-weight:500;'
-    'color:var(--accent);text-decoration:none;'
-    'letter-spacing:0.08em;text-transform:uppercase;line-height:1.4;'
-    'border-bottom:1px solid var(--accent-border);padding-bottom:2px;'
-    'transition:border-color .2s;" '
-    'onmouseover="this.style.borderBottomColor=\'var(--accent)\'" '
-    'onmouseout="this.style.borderBottomColor=\'var(--accent-border)\'">'
+    'style="font-family:\'Inconsolata\',monospace;font-size:11px;font-weight:500;'
+    'color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;'
+    'padding:5px 12px;border:1px solid rgba(90,170,232,0.32);'
+    'border-radius:999px;text-decoration:none;'
+    'background:rgba(90,170,232,0.08);line-height:1.4;'
+    'transition:background .2s,border-color .2s;" '
+    'onmouseover="this.style.background=\'rgba(90,170,232,0.16)\';'
+    'this.style.borderColor=\'var(--accent)\'" '
+    'onmouseout="this.style.background=\'rgba(90,170,232,0.08)\';'
+    'this.style.borderColor=\'rgba(90,170,232,0.32)\'">'
     'How this was built \u2192</a>'
-    '</div>'
-    '<div style="display:block;font-family:\'Inconsolata\',monospace;font-size:12px;'
-    'color:var(--text-dim);letter-spacing:0.05em;">'
-    'v2 of MIDS capstone \u00b7 '
-    '<a href="https://www.ischool.berkeley.edu/projects/2026/smrt-gridca" '
-    'target="_blank" style="color:var(--text-dim);text-decoration:underline;'
-    'text-decoration-color:var(--card-border);text-underline-offset:2px;" '
-    'onmouseover="this.style.color=\'var(--accent)\'" '
-    'onmouseout="this.style.color=\'var(--text-dim)\'">SMRT-GridCA \u2197</a>'
-    '</div>'
+
+    # Attribution ghost pill -- links to iSchool page
+    '<a href="https://www.ischool.berkeley.edu/projects/2026/smrt-gridca" target="_blank" '
+    'style="font-family:\'Inconsolata\',monospace;font-size:11px;font-weight:500;'
+    'color:var(--text-body);letter-spacing:0.08em;text-transform:uppercase;'
+    'padding:5px 12px;border:1px solid rgba(138,168,160,0.25);'
+    'border-radius:999px;text-decoration:none;line-height:1.4;'
+    'transition:color .2s,border-color .2s;" '
+    'onmouseover="this.style.color=\'var(--accent)\';'
+    'this.style.borderColor=\'rgba(90,170,232,0.3)\'" '
+    'onmouseout="this.style.color=\'var(--text-body)\';'
+    'this.style.borderColor=\'rgba(138,168,160,0.25)\'">'
+    'v2 of SMRT-GridCA \u2197</a>'
+
     '</div>',
+    unsafe_allow_html=True,
+)
+
+# Main title
+st.markdown(
+    '<h1 style="font-family:\'Literata\',Georgia,serif;'
+    'font-size:clamp(30px,3.4vw,42px);font-weight:700;'
+    'color:var(--text-primary);letter-spacing:-0.03em;'
+    'line-height:1.05;margin:0 0 4px 0;">'
+    'California Peak Energy Demand Predictions'
+    '</h1>',
     unsafe_allow_html=True,
 )
 
