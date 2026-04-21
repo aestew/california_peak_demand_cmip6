@@ -424,25 +424,34 @@ MAP_HEIGHT = 600  # px -- map and chat share this height
 # ---------------------------------------------------------------------------
 # HEADER
 # ---------------------------------------------------------------------------
-st.markdown(
-    '<div style="display:flex;justify-content:space-between;align-items:flex-end;'
-    'gap:24px;margin-bottom:4px;flex-wrap:wrap;">'
-    '<h1 style="font-family:\'Literata\',Georgia,serif;font-size:clamp(28px,3vw,40px);'
-    'font-weight:700;letter-spacing:-0.025em;color:var(--text-primary);margin:0;'
-    'line-height:1.1;">ClimateFEAT Explorer</h1>'
-    '<a href="/tech_behind_this" target="_self" '
-    'style="font-family:\'Inconsolata\',monospace;font-size:12px;color:var(--accent);'
-    'text-decoration:none;letter-spacing:0.08em;text-transform:uppercase;opacity:0.85;'
-    'padding-bottom:8px;white-space:nowrap;transition:opacity .2s;" '
-    'onmouseover="this.style.opacity=1;this.style.textDecoration=\'underline\'" '
-    'onmouseout="this.style.opacity=0.85;this.style.textDecoration=\'none\'">'
-    'About this \u2192</a>'
-    '</div>',
-    unsafe_allow_html=True,
-)
+st.title("ClimateFEAT Explorer")
 st.caption(
     "Climate-informed peak electricity demand projections for California "
     "// 58 counties // 2018-2040 // CMIP6 ensemble uncertainty"
+)
+st.markdown(
+    '<div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;'
+    'margin:12px 0 8px 0;">'
+    '<a href="/tech_behind_this" target="_self" '
+    'style="font-family:\'Literata\',Georgia,serif;font-size:clamp(20px,2.2vw,26px);'
+    'font-weight:700;font-style:italic;color:var(--accent);'
+    'text-decoration:none;letter-spacing:-0.015em;line-height:1.2;'
+    'border-bottom:1px solid var(--accent-border);padding-bottom:2px;'
+    'transition:border-color .2s,color .2s;" '
+    'onmouseover="this.style.borderBottomColor=\'var(--accent)\';this.style.color=\'#7DC2F0\'" '
+    'onmouseout="this.style.borderBottomColor=\'var(--accent-border)\';this.style.color=\'var(--accent)\'">'
+    'How this was built \u2192</a>'
+    '<span style="font-family:\'Inconsolata\',monospace;font-size:12px;'
+    'color:var(--text-dim);letter-spacing:0.05em;">'
+    'v2 of MIDS capstone \u00b7 '
+    '<a href="https://www.ischool.berkeley.edu/projects/2026/smrt-gridca" '
+    'target="_blank" style="color:var(--text-dim);text-decoration:underline;'
+    'text-decoration-color:var(--card-border);text-underline-offset:2px;" '
+    'onmouseover="this.style.color=\'var(--accent)\'" '
+    'onmouseout="this.style.color=\'var(--text-dim)\'">SMRT-GridCA \u2197</a>'
+    '</span>'
+    '</div>',
+    unsafe_allow_html=True,
 )
 
 # =====================================================================

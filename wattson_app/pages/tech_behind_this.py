@@ -334,21 +334,30 @@ code, .stMarkdown code {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+  padding: 10px 14px;
+  background: rgba(167,139,250,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 .nav-row a {
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--accent);
+  color: var(--violet-bright);
   text-decoration: none;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: opacity .2s;
-  opacity: 0.85;
+  transition: color .2s;
+  opacity: 1;
 }
-.nav-row a:hover { opacity: 1; text-decoration: underline; }
+.nav-row a:hover { color: var(--accent); }
+.nav-row .nav-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -363,7 +372,11 @@ code, .stMarkdown code {
 st.markdown(
     '<div class="nav-row">'
     '<a href="/" target="_self">\u2190 Back to Explorer</a>'
-    '<a href="https://github.com/aestew/california_peak_demand_cmip6" target="_blank">github \u2197</a>'
+    '<span class="nav-meta">'
+    'v2 \u00b7 <a href="https://www.ischool.berkeley.edu/projects/2026/smrt-gridca" '
+    'target="_blank" style="text-transform:none;letter-spacing:0;font-size:12px;">'
+    'iSchool capstone \u2197</a>'
+    '</span>'
     '</div>',
     unsafe_allow_html=True,
 )
