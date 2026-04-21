@@ -425,12 +425,8 @@ MAP_HEIGHT = 600  # px -- map and chat share this height
 # HEADER
 # ---------------------------------------------------------------------------
 st.title("ClimateFEAT Explorer")
-st.caption(
-    "Climate-informed peak electricity demand projections for California "
-    "// 58 counties // 2018-2040 // CMIP6 ensemble uncertainty"
-)
 st.markdown(
-    '<div style="margin:14px 0 8px 0;">'
+    '<div style="margin:-6px 0 18px 0;">'
     '<div style="display:block;margin-bottom:4px;">'
     '<a href="/tech_behind_this" target="_self" '
     'style="display:inline-block;'
@@ -444,7 +440,7 @@ st.markdown(
     'How this was built \u2192</a>'
     '</div>'
     '<div style="display:block;font-family:\'Inconsolata\',monospace;font-size:12px;'
-    'color:var(--text-dim);letter-spacing:0.05em;margin-bottom:14px;">'
+    'color:var(--text-dim);letter-spacing:0.05em;">'
     'v2 of MIDS capstone \u00b7 '
     '<a href="https://www.ischool.berkeley.edu/projects/2026/smrt-gridca" '
     'target="_blank" style="color:var(--text-dim);text-decoration:underline;'
@@ -516,10 +512,9 @@ with st.expander("How to use this app", expanded=False):
 
         '<p style="color:var(--text-dim);font-size:13px;margin-top:14px;'
         'padding-top:12px;border-top:1px solid var(--border);">'
-        "Heads up: the model was trained on 2018\u20132022 observed weather and demand, "
-        "then run forward through 2040 using downscaled CMIP6 climate ensembles. "
-        "Forecasts carry real uncertainty \u2014 they're best read as "
-        "<em>plausible futures to plan around</em>, not precise predictions."
+        "Heads up: this model is an exploratory playground for climate-energy futures. "
+        "It's not a production forecast or an actual planning or decisioning tool. "
+        "Enjoy exploring, but maybe don't build a nuclear reactor based on this information."
         "</p>"
 
         '</div>',
