@@ -282,13 +282,16 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
-# SIDEBAR SITUATION
+# HIDE SIDEBAR ENTIRELY (no nav, no collapse button)
 # ---------------------------------------------------------------------------
-with st.sidebar:
-    st.markdown("**Pages**")
-    st.page_link("wattson_draft.py", label="ClimateFEAT Explorer", icon="🗺️")
-    st.page_link("pages/data_explorer.py", label="Data Explorer", icon="🔍")
-    st.page_link("pages/about_the_team.py", label="About the Team", icon="👥")
+st.markdown("""
+<style>
+[data-testid="stSidebar"],
+[data-testid="stSidebarNav"],
+[data-testid="collapsedControl"] { display: none !important; }
+section[data-testid="stSidebar"] { width: 0 !important; min-width: 0 !important; }
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # PATHS & API KEYS
@@ -421,7 +424,22 @@ MAP_HEIGHT = 600  # px -- map and chat share this height
 # ---------------------------------------------------------------------------
 # HEADER
 # ---------------------------------------------------------------------------
-st.title("ClimateFEAT Explorer")
+st.markdown(
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;'
+    'gap:24px;margin-bottom:4px;flex-wrap:wrap;">'
+    '<h1 style="font-family:\'Literata\',Georgia,serif;font-size:clamp(28px,3vw,40px);'
+    'font-weight:700;letter-spacing:-0.025em;color:var(--text-primary);margin:0;'
+    'line-height:1.1;">ClimateFEAT Explorer</h1>'
+    '<a href="/tech_behind_this" target="_self" '
+    'style="font-family:\'Inconsolata\',monospace;font-size:12px;color:var(--accent);'
+    'text-decoration:none;letter-spacing:0.08em;text-transform:uppercase;opacity:0.85;'
+    'padding-bottom:8px;white-space:nowrap;transition:opacity .2s;" '
+    'onmouseover="this.style.opacity=1;this.style.textDecoration=\'underline\'" '
+    'onmouseout="this.style.opacity=0.85;this.style.textDecoration=\'none\'">'
+    'About this \u2192</a>'
+    '</div>',
+    unsafe_allow_html=True,
+)
 st.caption(
     "Climate-informed peak electricity demand projections for California "
     "// 58 counties // 2018-2040 // CMIP6 ensemble uncertainty"
