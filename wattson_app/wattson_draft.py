@@ -715,7 +715,7 @@ with map_col:
 
 # -- CHAT (height-matched to map) --
 with chat_col:
-    st.markdown("#### Ask about the model")
+    st.markdown("#### Compare our forecast to CEC's official forecasts, ask about methodology, or just explore the data through conversation. ")
 
     if not rag_available:
         st.info("RAG unavailable -- set API keys in Streamlit Secrets.")
